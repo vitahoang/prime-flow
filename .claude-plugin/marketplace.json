@@ -8,7 +8,7 @@
     {
       "name": "prime-flow",
       "source": "./",
-      "description": "One workflow from idea to merged code: mattpocock grilling for the design, then Superpowers for the spec, plan, TDD, debugging and code review"
+      "description": "One self-contained workflow from idea to merged code: grill the design in repo-grounded rounds, write a spec the user approves, plan from it, then build task by task with TDD, root-cause debugging and code review"
     }
   ]
 }
