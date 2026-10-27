@@ -1,0 +1,498 @@
+{
+  "comments": [],
+  "documents": [
+    {
+      "body": "Client wants a reading room facing the water.",
+      "created": "2026-09-01T09:00:00+00:00",
+      "folder_id": "fld_0002",
+      "id": "doc_0001",
+      "owner_id": "usr_0002",
+      "restricted": false,
+      "revision": 1,
+      "title": "Brief",
+      "trashed": false,
+      "trashed_at": null,
+      "updated": "2026-09-01T09:00:00+00:00",
+      "workspace_id": "ws_0001"
+    },
+    {
+      "body": "Tide line is higher than the survey says.",
+      "created": "2026-09-01T09:00:00+00:00",
+      "folder_id": "fld_0002",
+      "id": "doc_0002",
+      "owner_id": "usr_0002",
+      "restricted": false,
+      "revision": 1,
+      "title": "Site visit notes",
+      "trashed": false,
+      "trashed_at": null,
+      "updated": "2026-09-01T09:00:00+00:00",
+      "workspace_id": "ws_0001"
+    },
+    {
+      "body": "Draft for the council, due in October.",
+      "created": "2026-09-01T09:00:00+00:00",
+      "folder_id": "fld_0003",
+      "id": "doc_0003",
+      "owner_id": "usr_0003",
+      "restricted": false,
+      "revision": 1,
+      "title": "Planning application",
+      "trashed": false,
+      "trashed_at": null,
+      "updated": "2026-09-01T09:00:00+00:00",
+      "workspace_id": "ws_0001"
+    },
+    {
+      "body": "Option B keeps the original trusses.",
+      "created": "2026-09-01T09:00:00+00:00",
+      "folder_id": "fld_0004",
+      "id": "doc_0004",
+      "owner_id": "usr_0003",
+      "restricted": false,
+      "revision": 1,
+      "title": "Roof options",
+      "trashed": false,
+      "trashed_at": null,
+      "updated": "2026-09-01T09:00:00+00:00",
+      "workspace_id": "ws_0001"
+    },
+    {
+      "body": "Superseded by the July proposal.",
+      "created": "2026-09-01T09:00:00+00:00",
+      "folder_id": "fld_0003",
+      "id": "doc_0005",
+      "owner_id": "usr_0003",
+      "restricted": false,
+      "revision": 1,
+      "title": "Old fee proposal",
+      "trashed": true,
+      "trashed_at": "2026-09-01T09:00:00+00:00",
+      "updated": "2026-09-01T09:00:00+00:00",
+      "workspace_id": "ws_0001"
+    },
+    {
+      "body": "Confidential.",
+      "created": "2026-09-01T09:00:00+00:00",
+      "folder_id": "fld_0005",
+      "id": "doc_0006",
+      "owner_id": "usr_0001",
+      "restricted": true,
+      "revision": 1,
+      "title": "Salary bands",
+      "trashed": false,
+      "trashed_at": null,
+      "updated": "2026-09-01T09:00:00+00:00",
+      "workspace_id": "ws_0001"
+    },
+    {
+      "body": "Kitchen rota, holidays, IT.",
+      "created": "2026-09-01T09:00:00+00:00",
+      "folder_id": "fld_0005",
+      "id": "doc_0007",
+      "owner_id": "usr_0001",
+      "restricted": false,
+      "revision": 1,
+      "title": "Office handbook",
+      "trashed": false,
+      "trashed_at": null,
+      "updated": "2026-09-01T09:00:00+00:00",
+      "workspace_id": "ws_0001"
+    },
+    {
+      "body": "Logo spacing and colours.",
+      "created": "2026-09-01T09:00:00+00:00",
+      "folder_id": "fld_0005",
+      "id": "doc_0008",
+      "owner_id": "usr_0005",
+      "restricted": false,
+      "revision": 1,
+      "title": "Brand guidelines",
+      "trashed": false,
+      "trashed_at": null,
+      "updated": "2026-09-01T09:00:00+00:00",
+      "workspace_id": "ws_0001"
+    }
+  ],
+  "events": [
+    {
+      "action": "admin.add",
+      "actor_id": null,
+      "at": "2026-09-01T09:00:00+00:00",
+      "detail": {
+        "user": "usr_0001"
+      },
+      "resource_id": "ws_0001"
+    },
+    {
+      "action": "user.suspend",
+      "actor_id": null,
+      "at": "2026-09-01T09:00:00+00:00",
+      "detail": {},
+      "resource_id": "usr_0006"
+    },
+    {
+      "action": "folder.create",
+      "actor_id": "usr_0002",
+      "at": "2026-09-01T09:00:00+00:00",
+      "detail": {
+        "name": "Projects"
+      },
+      "resource_id": "fld_0001"
+    },
+    {
+      "action": "folder.create",
+      "actor_id": "usr_0002",
+      "at": "2026-09-01T09:00:00+00:00",
+      "detail": {
+        "name": "Harbour Library"
+      },
+      "resource_id": "fld_0002"
+    },
+    {
+      "action": "folder.create",
+      "actor_id": "usr_0003",
+      "at": "2026-09-01T09:00:00+00:00",
+      "detail": {
+        "name": "Market Hall"
+      },
+      "resource_id": "fld_0003"
+    },
+    {
+      "action": "folder.create",
+      "actor_id": "usr_0003",
+      "at": "2026-09-01T09:00:00+00:00",
+      "detail": {
+        "name": "Drawings"
+      },
+      "resource_id": "fld_0004"
+    },
+    {
+      "action": "folder.create",
+      "actor_id": "usr_0001",
+      "at": "2026-09-01T09:00:00+00:00",
+      "detail": {
+        "name": "Admin"
+      },
+      "resource_id": "fld_0005"
+    },
+    {
+      "action": "document.create",
+      "actor_id": "usr_0002",
+      "at": "2026-09-01T09:00:00+00:00",
+      "detail": {
+        "title": "Brief"
+      },
+      "resource_id": "doc_0001"
+    },
+    {
+      "action": "document.create",
+      "actor_id": "usr_0002",
+      "at": "2026-09-01T09:00:00+00:00",
+      "detail": {
+        "title": "Site visit notes"
+      },
+      "resource_id": "doc_0002"
+    },
+    {
+      "action": "document.create",
+      "actor_id": "usr_0003",
+      "at": "2026-09-01T09:00:00+00:00",
+      "detail": {
+        "title": "Planning application"
+      },
+      "resource_id": "doc_0003"
+    },
+    {
+      "action": "document.create",
+      "actor_id": "usr_0003",
+      "at": "2026-09-01T09:00:00+00:00",
+      "detail": {
+        "title": "Roof options"
+      },
+      "resource_id": "doc_0004"
+    },
+    {
+      "action": "document.create",
+      "actor_id": "usr_0003",
+      "at": "2026-09-01T09:00:00+00:00",
+      "detail": {
+        "title": "Old fee proposal"
+      },
+      "resource_id": "doc_0005"
+    },
+    {
+      "action": "document.trash",
+      "actor_id": null,
+      "at": "2026-09-01T09:00:00+00:00",
+      "detail": {},
+      "resource_id": "doc_0005"
+    },
+    {
+      "action": "document.create",
+      "actor_id": "usr_0001",
+      "at": "2026-09-01T09:00:00+00:00",
+      "detail": {
+        "title": "Salary bands"
+      },
+      "resource_id": "doc_0006"
+    },
+    {
+      "action": "document.restrict",
+      "actor_id": null,
+      "at": "2026-09-01T09:00:00+00:00",
+      "detail": {},
+      "resource_id": "doc_0006"
+    },
+    {
+      "action": "document.create",
+      "actor_id": "usr_0001",
+      "at": "2026-09-01T09:00:00+00:00",
+      "detail": {
+        "title": "Office handbook"
+      },
+      "resource_id": "doc_0007"
+    },
+    {
+      "action": "document.create",
+      "actor_id": "usr_0005",
+      "at": "2026-09-01T09:00:00+00:00",
+      "detail": {
+        "title": "Brand guidelines"
+      },
+      "resource_id": "doc_0008"
+    }
+  ],
+  "folders": [
+    {
+      "created": "2026-09-01T09:00:00+00:00",
+      "id": "fld_0001",
+      "name": "Projects",
+      "owner_id": "usr_0002",
+      "parent_id": null,
+      "workspace_id": "ws_0001"
+    },
+    {
+      "created": "2026-09-01T09:00:00+00:00",
+      "id": "fld_0002",
+      "name": "Harbour Library",
+      "owner_id": "usr_0002",
+      "parent_id": "fld_0001",
+      "workspace_id": "ws_0001"
+    },
+    {
+      "created": "2026-09-01T09:00:00+00:00",
+      "id": "fld_0003",
+      "name": "Market Hall",
+      "owner_id": "usr_0003",
+      "parent_id": "fld_0001",
+      "workspace_id": "ws_0001"
+    },
+    {
+      "created": "2026-09-01T09:00:00+00:00",
+      "id": "fld_0004",
+      "name": "Drawings",
+      "owner_id": "usr_0003",
+      "parent_id": "fld_0003",
+      "workspace_id": "ws_0001"
+    },
+    {
+      "created": "2026-09-01T09:00:00+00:00",
+      "id": "fld_0005",
+      "name": "Admin",
+      "owner_id": "usr_0001",
+      "parent_id": null,
+      "workspace_id": "ws_0001"
+    }
+  ],
+  "format": 2,
+  "groups": [
+    {
+      "created": "2026-09-01T09:00:00+00:00",
+      "id": "grp_0001",
+      "members": [
+        "usr_0001"
+      ],
+      "name": "Everyone",
+      "subgroups": [
+        "grp_0002",
+        "grp_0004"
+      ],
+      "workspace_id": "ws_0001"
+    },
+    {
+      "created": "2026-09-01T09:00:00+00:00",
+      "id": "grp_0002",
+      "members": [
+        "usr_0004"
+      ],
+      "name": "Studio",
+      "subgroups": [
+        "grp_0003"
+      ],
+      "workspace_id": "ws_0001"
+    },
+    {
+      "created": "2026-09-01T09:00:00+00:00",
+      "id": "grp_0003",
+      "members": [
+        "usr_0002",
+        "usr_0003"
+      ],
+      "name": "Architects",
+      "subgroups": [],
+      "workspace_id": "ws_0001"
+    },
+    {
+      "created": "2026-09-01T09:00:00+00:00",
+      "id": "grp_0004",
+      "members": [
+        "usr_0005"
+      ],
+      "name": "Design",
+      "subgroups": [
+        "grp_0005"
+      ],
+      "workspace_id": "ws_0001"
+    },
+    {
+      "created": "2026-09-01T09:00:00+00:00",
+      "id": "grp_0005",
+      "members": [
+        "usr_0007"
+      ],
+      "name": "Brand",
+      "subgroups": [
+        "grp_0004"
+      ],
+      "workspace_id": "ws_0001"
+    }
+  ],
+  "revisions": [
+    {
+      "author_id": "usr_0002",
+      "body": "Client wants a reading room facing the water.",
+      "created": "2026-09-01T09:00:00+00:00",
+      "document_id": "doc_0001",
+      "number": 1
+    },
+    {
+      "author_id": "usr_0002",
+      "body": "Tide line is higher than the survey says.",
+      "created": "2026-09-01T09:00:00+00:00",
+      "document_id": "doc_0002",
+      "number": 1
+    },
+    {
+      "author_id": "usr_0003",
+      "body": "Draft for the council, due in October.",
+      "created": "2026-09-01T09:00:00+00:00",
+      "document_id": "doc_0003",
+      "number": 1
+    },
+    {
+      "author_id": "usr_0003",
+      "body": "Option B keeps the original trusses.",
+      "created": "2026-09-01T09:00:00+00:00",
+      "document_id": "doc_0004",
+      "number": 1
+    },
+    {
+      "author_id": "usr_0003",
+      "body": "Superseded by the July proposal.",
+      "created": "2026-09-01T09:00:00+00:00",
+      "document_id": "doc_0005",
+      "number": 1
+    },
+    {
+      "author_id": "usr_0001",
+      "body": "Confidential.",
+      "created": "2026-09-01T09:00:00+00:00",
+      "document_id": "doc_0006",
+      "number": 1
+    },
+    {
+      "author_id": "usr_0001",
+      "body": "Kitchen rota, holidays, IT.",
+      "created": "2026-09-01T09:00:00+00:00",
+      "document_id": "doc_0007",
+      "number": 1
+    },
+    {
+      "author_id": "usr_0005",
+      "body": "Logo spacing and colours.",
+      "created": "2026-09-01T09:00:00+00:00",
+      "document_id": "doc_0008",
+      "number": 1
+    }
+  ],
+  "users": [
+    {
+      "created": "2026-09-01T09:00:00+00:00",
+      "email": "olive@hollisgrey.com",
+      "id": "usr_0001",
+      "name": "Olive Hollis",
+      "status": "active",
+      "workspace_id": "ws_0001"
+    },
+    {
+      "created": "2026-09-01T09:00:00+00:00",
+      "email": "marcus@hollisgrey.com",
+      "id": "usr_0002",
+      "name": "Marcus Grey",
+      "status": "active",
+      "workspace_id": "ws_0001"
+    },
+    {
+      "created": "2026-09-01T09:00:00+00:00",
+      "email": "priya@hollisgrey.com",
+      "id": "usr_0003",
+      "name": "Priya Nair",
+      "status": "active",
+      "workspace_id": "ws_0001"
+    },
+    {
+      "created": "2026-09-01T09:00:00+00:00",
+      "email": "jun@hollisgrey.com",
+      "id": "usr_0004",
+      "name": "Jun Park",
+      "status": "active",
+      "workspace_id": "ws_0001"
+    },
+    {
+      "created": "2026-09-01T09:00:00+00:00",
+      "email": "tom@hollisgrey.com",
+      "id": "usr_0005",
+      "name": "Tom Reyes",
+      "status": "active",
+      "workspace_id": "ws_0001"
+    },
+    {
+      "created": "2026-09-01T09:00:00+00:00",
+      "email": "sam@hollisgrey.com",
+      "id": "usr_0006",
+      "name": "Sam Ito",
+      "status": "suspended",
+      "workspace_id": "ws_0001"
+    },
+    {
+      "created": "2026-09-01T09:00:00+00:00",
+      "email": "lena@lenastudio.io",
+      "id": "usr_0007",
+      "name": "Lena Vogel",
+      "status": "active",
+      "workspace_id": "ws_0001"
+    }
+  ],
+  "workspaces": [
+    {
+      "admins": [
+        "usr_0001"
+      ],
+      "created": "2026-09-01T09:00:00+00:00",
+      "domain": "hollisgrey.com",
+      "id": "ws_0001",
+      "name": "Hollis & Grey"
+    }
+  ]
+}

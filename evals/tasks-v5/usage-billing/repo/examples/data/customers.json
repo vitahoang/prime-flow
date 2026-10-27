@@ -1,0 +1,6 @@
+[
+  {"id": "cus_harbour", "name": "Harbour Logistics", "email": "ops@harbour.example", "country": "GB", "currency": "GBP", "timezone": "Europe/London", "plan_id": "pro_gbp", "tags": ["priority-support"], "credit_balance": "25.00", "created_at": "2025-11-03T09:12:00Z"},
+  {"id": "cus_pinecrest", "name": "Pinecrest Realty", "email": "it@pinecrest.example", "country": "US", "currency": "USD", "timezone": "America/Denver", "plan_id": "scale_usd", "credit_balance": "0", "created_at": "2026-01-15T17:40:00Z"},
+  {"id": "cus_sakura", "name": "Sakura Delivery KK", "email": "dev@sakura.example", "country": "JP", "currency": "JPY", "timezone": "Asia/Tokyo", "plan_id": "pro_jpy", "tags": ["beta-sdk", "invoice-by-post"], "credit_balance": "0", "created_at": "2026-03-01T00:00:00Z"},
+  {"id": "cus_lindgren", "name": "Lindgren Moebel GmbH", "email": "admin@lindgren.example", "country": "DE", "currency": "EUR", "timezone": "Europe/Berlin", "plan_id": "starter_eur", "credit_balance": "0", "created_at": "2026-06-20T08:00:00Z"}
+]

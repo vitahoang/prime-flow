@@ -1,0 +1,8 @@
+{
+  "payments": [
+    {"invoice": "INV-0911", "amount": "1080.00", "paid_at": "2025-12-15T11:02:00Z", "reference": "NG-4471"},
+    {"invoice": "INV-1031", "amount": "2220.00", "paid_at": "2026-09-24T08:40:00Z", "reference": "NORTHGATE SEP"},
+    {"invoice": "INV-1036", "amount": "1000.00", "paid_at": "2026-09-30T18:00:00Z", "method": "card"},
+    {"invoice": "INV-1043", "amount": "9130.00", "paid_at": "2026-10-15T09:20:00Z", "reference": "HARBOURSIDE INV1043"}
+  ]
+}

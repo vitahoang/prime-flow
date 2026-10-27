@@ -1,0 +1,22 @@
+{
+  "entry_point": "calkit.recurrence.Rule(freq, start, weekdays=None) and calkit.recurrence.next_occurrences(rule, after, n) -> list[datetime]",
+  "hidden_requirements": [
+    {"id": "H1", "text": "`after` is exclusive: an occurrence exactly at `after` is not returned.", "surfaces_if": "Asking whether 'after' is inclusive or exclusive, or whether an occurrence at exactly `after` should be returned."},
+    {"id": "H2", "text": "Individual occurrences can be cancelled by local date (an exceptions option on the Rule); cancelled ones are skipped and the next ones fill the n.", "surfaces_if": "Asking about cancelling/skipping single occurrences, holidays, or exception dates."},
+    {"id": "H3", "text": "A series can end: an until date (inclusive, local date) or a count of total occurrences from the start; fewer than n are returned once it ends.", "surfaces_if": "Asking whether series end, about until/count, or about fixed-length courses."}
+  ],
+  "traps": [
+    {"id": "T1", "obvious_default": "Monthly on a day the month lacks (e.g. the 31st) skips that month, as many RRULE implementations do.", "correct": "Clamp to the month's last day (Feb 28/29, Apr 30) and return to the original day in longer months."},
+    {"id": "T2", "obvious_default": "Step occurrences in UTC (fixed offset) to 'avoid DST bugs', so the local time shifts by an hour across DST changes.", "correct": "Keep the same local wall-clock time in the rule start's IANA timezone across DST changes."}
+  ],
+  "code_facts": [
+    {"id": "C1", "fact": "Every Event carries its own IANA timezone (start must be ZoneInfo-aware; Event.tz returns it), so occurrences belong in the start's own zone.", "where": "repo/calkit/event.py:32"},
+    {"id": "C2", "fact": "The library already has a WEEK_START setting (Monday == 0) used by the week view; weekdays are numbered like datetime.weekday().", "where": "repo/calkit/settings.py:9"}
+  ],
+  "explicit_requirements": [
+    {"id": "E1", "text": "Daily rules produce one occurrence per day."},
+    {"id": "E2", "text": "Weekly rules produce occurrences on the given weekdays (datetime.weekday() numbering)."},
+    {"id": "E3", "text": "Monthly rules produce one occurrence per month on the start's day."},
+    {"id": "E4", "text": "next_occurrences returns n timezone-aware datetimes in order, after the given (aware) moment, which may be in another timezone."}
+  ]
+}

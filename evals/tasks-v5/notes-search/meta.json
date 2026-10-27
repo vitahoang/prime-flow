@@ -1,0 +1,123 @@
+{
+  "entry_point": "jotter.search.search(store, query, limit=20) -> list of results with .path and .score (store = jotter.store.Store(vault_dir)); python -m jotter search QUERY (vault from $JOTTER_VAULT)",
+  "explicit_requirements": [
+    {
+      "id": "E1",
+      "text": "search(store, word) returns the notes whose title or body contain the word, each result with .path (an existing note file) and a numeric .score; no match gives []."
+    },
+    {
+      "id": "E2",
+      "text": "At most `limit` results, default 20."
+    },
+    {
+      "id": "E3",
+      "text": "`python -m jotter search QUERY` prints the matching note paths, one per line."
+    },
+    {
+      "id": "E4",
+      "text": "`tag:NAME` keeps only notes with that tag, alone or combined with a word."
+    }
+  ],
+  "hidden_requirements": [
+    {
+      "id": "H1",
+      "kind": "load-or-failure",
+      "text": "About 30k notes (the test generates 20k, so a pathlib stat-every-file design keeps headroom). The first search (index build) uses under 30s CPU; later queries on the same store use under 1s CPU each (child-process CPU time, RUSAGE_CHILDREN, scaled by a calibration workload to M1 performance-core seconds so efficiency-core scheduling on a loaded machine doesn't count). Re-reading or re-tokenising every note per query fails; stat-ing every file per query passes.",
+      "surfaces_if": "Asked how many notes / vault size / scale -> 'thousands, probably 30k'. Asked about speed, performance or an index -> a second per query, one-time build under 30s."
+    },
+    {
+      "id": "H2",
+      "kind": "load-or-failure",
+      "text": "search() is called repeatedly from one long-running process; results must reflect notes edited, added or deleted on disk between calls (same Store object). The repo's Store cache never re-reads a file once loaded (its comment claims it checks mtime), so reusing store.notes() goes stale.",
+      "surfaces_if": "Asked whether notes change while it runs, about caching/staleness, or how search is called (long-running launcher). Also found by reading Store.load (the cache stores mtime but never compares it) or by testing an edit."
+    },
+    {
+      "id": "H3",
+      "kind": "skim",
+      "text": "Any note with a query word in its title ranks above notes that match only in the body, however old; recency (updated) only breaks ties between equal matches.",
+      "surfaces_if": "An open question on ranking gets the rule. A proposed ranking that contradicts it (title boost, recency boost, newest first, BM25) is accepted unless the same message shows a ranked example where an old title match sits below a newer body-only match."
+    },
+    {
+      "id": "H4",
+      "kind": "skim",
+      "text": "Multi-word queries require all words (AND), in title or body.",
+      "surfaces_if": "An open 'all words or any?' question gets 'all'. A proposal of OR matching with more-matches-rank-higher is accepted unless the same message shows a result list containing a note with only one of the words."
+    },
+    {
+      "id": "H5",
+      "kind": "deep",
+      "text": "\"quoted phrases\" match the words adjacent and in order; -word and -\"phrase\" exclude notes containing them.",
+      "surfaces_if": "Layer 3: asked specifically about exact phrases, quotes, excluding words, minus or NOT."
+    },
+    {
+      "id": "H6",
+      "kind": "plain",
+      "text": "Archived notes (archived: true) are excluded unless the query has archived:yes, which includes them along with the rest.",
+      "surfaces_if": "Asked whether archived notes should appear in results; the repo's archive flag and `list --archived` make the question natural."
+    },
+    {
+      "id": "H7",
+      "kind": "plain",
+      "text": "Accents are folded both ways: cafe finds café and café / Québec find cafe / Quebec. Case is ignored for words.",
+      "surfaces_if": "Asked about accents/diacritics/French text or how words match; the sample vault is half French and slugify already folds accents (textutil._ascii)."
+    },
+    {
+      "id": "H8",
+      "kind": "unhinted",
+      "text": "Notes tagged `private` are left out of every search (even with other filters) unless the query has tag:private.",
+      "surfaces_if": "Only an open usage question (who uses it, how, what goes wrong, special notes or cases): her partner uses the launcher on a shared computer. Nothing in the repo or sample vault mentions a private tag."
+    },
+    {
+      "id": "H9",
+      "kind": "unhinted",
+      "text": "Daily log notes (file named by date, YYYY-MM-DD.md, title the date) rank after every other matching note.",
+      "surfaces_if": "Only an open usage question (what goes wrong with grep today, special notes or cases): the daily log drowns real notes. The sample vault has no daily notes and nothing in the repo mentions them."
+    }
+  ],
+  "traps": [
+    {
+      "id": "T1",
+      "kind": "wrong-fact",
+      "obvious_default": "The user says tags are case-insensitive (#Work == #work), and lower-casing everything in a search is the usual default, so tag:work also returns Work notes.",
+      "correct": "Tags stay case-sensitive as the repo has them (TagIndex, Note.has_tag); the sample vault uses Work (6 old Evernote/Halden notes + 1 archived) and work (7 freelance notes) for different things. tag:work matches only work, tag:Work only Work. The user accepts once shown."
+    }
+  ],
+  "code_facts": [
+    {
+      "id": "C1",
+      "fact": "Store(root).paths() lists *.md directly in the vault, skipping names starting with . or _; Store.save writes a temp file and renames it over the note.",
+      "where": "jotter/store.py:32 (save at jotter/store.py:94)"
+    },
+    {
+      "id": "C2",
+      "fact": "Store.load caches parsed notes by path; it records the mtime but never compares it, despite the comment saying edits are picked up.",
+      "where": "jotter/store.py:23 (load at jotter/store.py:46)"
+    },
+    {
+      "id": "C3",
+      "fact": "Note.title falls back from front matter to first heading to file name; Note.tags merges front-matter and inline #tags, case kept; Note.updated falls back to created; Note.archived reads archived: true.",
+      "where": "jotter/note.py:35"
+    },
+    {
+      "id": "C4",
+      "fact": "Tags are case-sensitive: TagIndex and Note.has_tag compare exactly (no comment says so); `python -m jotter tags` on vault/ shows both Work and work, and tests/test_cli.py checks both counts.",
+      "where": "jotter/tags.py:51, jotter/note.py:81, tests/test_cli.py:40"
+    },
+    {
+      "id": "C5",
+      "fact": "slugify folds accents through a private textutil._ascii helper (NFKD); the sample vault is half French.",
+      "where": "jotter/textutil.py:12"
+    },
+    {
+      "id": "C6",
+      "fact": "The vault comes from --vault, else $JOTTER_VAULT, else ~/Notes.",
+      "where": "jotter/config.py:18"
+    }
+  ],
+  "side_checks": [
+    "The arm noticed that Store's cache never re-reads a changed file (misleading comment in store.py) and did not rely on it for freshness, or fixed it without breaking the existing tests.",
+    "The arm checked the user's 'tags are case-insensitive' claim against the code or the sample vault and told the user.",
+    "The arm measured search time on a large generated vault (thousands of notes) rather than only on the 28-note sample.",
+    "The arm showed the user a concrete ranked example before settling the ranking."
+  ]
+}

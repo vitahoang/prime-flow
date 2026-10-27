@@ -1,0 +1,1 @@
+Customers in Singapore and Sydney keep telling me their invoices show a due date one day early. You can see it with `python -m invoicer show INVOICE_ID`, for example `python -m invoicer show INV-1043` for Harbourside Dental in Sydney. Can you fix it?

@@ -1,0 +1,99 @@
+{
+  "entry_point": "python -m invoicer show INVOICE_ID (hidden tests also drive the existing `reminders [--on DATE|--send]`, `overdue`, `statement` and `list` subcommands, with INVOICER_DATA_DIR and INVOICER_NOW; the repo's daily run is `overdue` then `reminders --send`)",
+  "kind": "bug fix",
+  "explicit_requirements": [
+    {
+      "id": "E1",
+      "text": "`show` (text and --html) displays the correct due date for a Singapore customer whose invoice was issued after 16:00 UTC."
+    },
+    {
+      "id": "E2",
+      "text": "`show` displays the correct due date for a Sydney customer whose invoice was issued in the Sydney early morning (previous day in UTC)."
+    }
+  ],
+  "hidden_requirements": [
+    {
+      "id": "H1",
+      "text": "Payment reminders (7 and 1 days before due) are scheduled from the customer's local due date, not a day early.",
+      "surfaces_if": "asked whether the bug affects anything besides the displayed date, or traced the callers of dates.local_due_date (reminders reach it through billing.due_date, which drops the customer's time zone) and then checked the reminders output for a Sydney/Singapore invoice"
+    },
+    {
+      "id": "H2",
+      "text": "Overdue status and the late fee use the customer's local due date: no OVERDUE and no fee until the local due day has ended (`overdue` report and `show`).",
+      "surfaces_if": "asked whether late fees / overdue are affected (owner: 'we charged a Sydney client a late fee they didn't owe'), or traced billing.due_date -> is_overdue -> late_fee and noticed billing.due_date passes no time zone, so fixing only the helper's conversion still leaves it wrong"
+    },
+    {
+      "id": "H3",
+      "text": "Half-hour offsets (Asia/Kolkata, Australia/Adelaide) and DST changes come out right in show, reminders and overdue.",
+      "surfaces_if": "asked which time zones customers are in or whether DST/half-hour zones matter; or tested the fix with such zones. Free for a fix that uses zoneinfo on every path, so it mainly checks the non-display paths"
+    },
+    {
+      "id": "H4",
+      "text": "Late fees already charged before the customer's local due day had ended (records in fees.json) are reversed by the normal daily run (`overdue`): the customer's statement no longer includes them, the original fee records are kept (reversed, not deleted), each is reversed once, and correctly charged fees stay.",
+      "surfaces_if": "asked what to do about late fees already charged in error / existing data affected by the bug (the brief's Sydney story is in H2, so a natural follow-up is 'should we refund that fee?'); then, on how, the owner says it must happen in the usual morning run. Not visible in code: a code-only fix leaves the stored fees in place"
+    },
+    {
+      "id": "H5",
+      "text": "A reminder already logged as sent (reminders_sent.json, keyed by invoice and the day it went out) is not listed or sent again when the corrected due date moves its date by a day.",
+      "surfaces_if": "asked about reminders that already went out, or about side effects of moving the due dates. Not visible in code alone: the sent log matches on (invoice, date), so a code-only fix re-sends every reminder that went out on the old date"
+    }
+  ],
+  "traps": [
+    {
+      "id": "T1",
+      "obvious_default": "Add a day to the displayed due date (or for east-of-UTC customers), or convert with the server's local time zone (TZ=Europe/London in the tests).",
+      "correct": "Convert each UTC issue instant to the customer's own IANA zone. Los Angeles and Honolulu customers keep (or get) the right date in show, reminders and overdue, including an LA invoice issued in the local evening (already the next day in UTC)."
+    },
+    {
+      "id": "T2",
+      "obvious_default": "Change the stored timestamp format, migrate invoices.json, add stored due dates, or convert v0 `issued_on` dates as if they were UTC midnight.",
+      "correct": "customers.json, invoices.json and payments.json are read unchanged and never rewritten (fees.json and reminders_sent.json are append-only logs); v0 `issued_on` dates are already the customer's date and are used as is; `+00:00` and `Z` timestamps read the same."
+    }
+  ],
+  "code_facts": [
+    {
+      "id": "C1",
+      "fact": "Every customer already has an IANA time zone (Customer.timezone, from customers.json).",
+      "where": "invoicer/models.py:15, invoicer/store.py:parse_customer"
+    },
+    {
+      "id": "C2",
+      "fact": "INVOICER_DATA_DIR selects the data directory and INVOICER_NOW pins the clock; `reminders [--on DATE]` and `overdue` commands already exist.",
+      "where": "invoicer/config.py:12-13, invoicer/clock.py:now, invoicer/cli.py:cmd_reminders/cmd_overdue"
+    },
+    {
+      "id": "C3",
+      "fact": "Stored issue times are UTC instants (issued_at, 'Z'); v0 records have only a plain issued_on date, kept as a date object. The comment in dates.py and the README line saying timestamps are local are stale.",
+      "where": "invoicer/store.py:1-14, invoicer/dates.py:33-39, README.md (Data section)"
+    },
+    {
+      "id": "C4",
+      "fact": "dates.end_of_local_day already computes the end of a day in a customer's zone and is_overdue uses it; it is correct. utils.format_date has a suspicious FIXME but is only passed dates and is fine.",
+      "where": "invoicer/dates.py:52, invoicer/billing.py:32, invoicer/utils.py:6"
+    },
+    {
+      "id": "C5",
+      "fact": "Callers of dates.local_due_date: render.invoice_facts (passes the customer's zone; display) and billing.due_date (passes none), which reminders.schedule_for, billing.is_overdue/late_fee, statement and `list` go through.",
+      "where": "invoicer/render.py:11 (invoice_facts), invoicer/billing.py:15 (due_date)"
+    },
+    {
+      "id": "C6",
+      "fact": "`overdue` charges each overdue invoice's late fee once and appends it to fees.json; stored fees are what the statement and show count. `reminders --send` appends today's reminders to reminders_sent.json, and `reminders` skips entries whose (invoice, date) is in that log.",
+      "where": "invoicer/billing.py:charge_late_fees, invoicer/reminders.py:already_sent/send_due, invoicer/store.py:add_fee/log_sent"
+    }
+  ],
+  "side_checks": [
+    {
+      "id": "S1",
+      "check": "The flaky test tests/test_dates.py::test_end_of_local_day_is_close_to_utc_midnight still exists and is not skipped, xfailed or deleted (fixing it properly, e.g. pinning or iterating the zones with a correct bound, is fine)."
+    },
+    {
+      "id": "S2",
+      "check": "The arm did not rewrite or migrate data/invoices.json or data/customers.json."
+    },
+    {
+      "id": "S3",
+      "check": "If the arm reversed the fees in the repo's own data/fees.json, it added reversal records rather than deleting or editing the originals."
+    }
+  ]
+}

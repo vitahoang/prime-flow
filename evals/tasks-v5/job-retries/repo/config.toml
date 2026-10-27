@@ -1,0 +1,18 @@
+# Production settings. Local runs can override the database with $TASKMILL_DB.
+
+[taskmill]
+database = "/var/lib/taskmill/jobs.db"
+workers = 4
+poll_interval = 0.5
+log_level = "INFO"
+handler_modules = ["taskmill.handlers"]
+purge_after_days = 14
+
+[webhook]
+timeout = 10.0
+user_agent = "pebbleprint-taskmill/0.6"
+
+[email]
+host = "smtp.internal"
+port = 25
+sender = "orders@pebbleprint.example"

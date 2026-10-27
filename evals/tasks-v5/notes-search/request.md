@@ -1,0 +1,1 @@
+All my notes live in jotter (it's in this repo), and finding anything has become painful. Can you add search? I'd like `jotter.search.search(store, query, limit=20)` that returns a list of results, best first, each with `.path` and `.score`, and `python -m jotter search QUERY` that prints the matching paths, one per line. It should also let me filter by tag, like `tag:clients`.

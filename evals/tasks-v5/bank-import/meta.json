@@ -1,0 +1,107 @@
+{
+  "entry_point": "python -m pennywise import FILE --account NAME  (database from $PENNYWISE_DB; results read back with `txn list --account NAME --json` and `accounts show NAME`)",
+  "explicit_requirements": [
+    {
+      "id": "E1",
+      "text": "Importing a Northbank export adds its rows to the account with the right dates and amounts (Paid in positive, Paid out negative)."
+    },
+    {
+      "id": "E2",
+      "text": "Importing a Kestrel export (semicolons, decimal comma, DD.MM.YYYY) adds its rows correctly."
+    },
+    {
+      "id": "E3",
+      "text": "Re-importing the same export, or importing an overlapping later one, adds no duplicates (checked with exports that have no identical rows)."
+    }
+  ],
+  "hidden_requirements": [
+    {
+      "id": "H1",
+      "kind": "skim",
+      "text": "Two identical rows on the same day (same date, amount, description) are both real and both kept; a re-import still leaves exactly two, and a later export that has the second one adds it. Rows are identified by the bank's own id where the export has one (Kestrel), otherwise by date + amount + description plus an occurrence number (or any equivalent, e.g. the running balance).",
+      "surfaces_if": "Skim. A proposal to dedupe on date + amount + description (what legacy_qif.dedupe and the README's watermark suggest) gets 'yes'. The user corrects it only when the same message shows a concrete example with two identical same-day rows merged or dropped, or when asked an open question ('can the same transaction legitimately appear twice?'). The samples no longer contain an identical pair."
+    },
+    {
+      "id": "H2",
+      "kind": "load-or-failure",
+      "text": "A 200,000-row export (five years) imports in a few seconds: under 20s of CPU (user+sys, RUSAGE_CHILDREN) with a 300s wall stop; ref about 1-2s. Store.add_transaction commits per row, which takes minutes at this size; so does applying rules row by row with per-row commits for many rows.",
+      "surfaces_if": "asked about volume, file sizes or how far back the first import goes (-> five years, ~200k rows in one go), or how fast it must be"
+    },
+    {
+      "id": "H3",
+      "kind": "skim",
+      "text": "An import killed part-way (SIGKILL), then run again with the same file, leaves every row exactly once. Atomic or resumable-and-idempotent are both fine. Fails for: the README's 'skip anything on or before the last entry' watermark combined with per-row commits, and for marking a file as imported before its rows are committed.",
+      "surfaces_if": "Skim. A proposal that breaks it (the README's watermark with per-row saves, or recording the file before its rows) gets 'yes'. Corrected only when the same message shows a worked example of a killed import being re-run, or when asked an open question about failures, crashes, interruptions or the laptop sleeping."
+    },
+    {
+      "id": "H4",
+      "kind": "deep",
+      "text": "The uscard (Liberty Visa) profile flips signs: purchases (positive in the export) are stored negative; returns and payments (negative in the export) are stored positive. Northbank and Kestrel are not flipped.",
+      "surfaces_if": "Three layers. Broad question about signs -> 'money in positive'. Asked about the credit card -> 'card exports show purchases as positive'. Asked whether to flip per bank / for the card profile -> 'yes, card only; refunds then come out positive'. Also visible in samples/uscard-2025-08.csv (purchases positive, RETURN and PAYMENT negative)."
+    },
+    {
+      "id": "H5",
+      "kind": "normal",
+      "text": "The category rules (rules.RuleSet) are applied to imported rows; rows no rule matches stay uncategorised.",
+      "surfaces_if": "asked whether the existing category rules should run on imported rows, or how imported rows get categorised; the repo's rules engine and `rules apply` make the question natural"
+    },
+    {
+      "id": "H6",
+      "kind": "unhinted",
+      "text": "Northbank rows of type PND (pending card payments, listed first with no balance) are skipped; when they clear they come back as DEB rows, often on another date, and must then appear once.",
+      "surfaces_if": "Only from an open question about real use: what goes wrong today, how the exports are used, special cases or odd rows, anything that shouldn't be imported, anything odd about the Northbank export, or whether any of its row types should be skipped. Nothing in the repo or samples mentions pending rows."
+    },
+    {
+      "id": "H7",
+      "kind": "unhinted",
+      "text": "Zero-amount rows (hotel / car-hire card checks) are not imported, on any bank.",
+      "surfaces_if": "Only from an open question about special cases, odd rows, anything odd in the exports, or anything that shouldn't be imported. Nothing in the repo or samples has a zero-amount row."
+    }
+  ],
+  "traps": [
+    {
+      "id": "T1",
+      "kind": "wrong-fact",
+      "obvious_default": "Parse every bank as DD/MM/YYYY: the user says so in the request, dates.DEFAULT_FORMAT is day-first with a comment saying every bank is, the README says the same, and the uscard profile has no date_format so it falls back to it.",
+      "correct": "The US card exports MM/DD/YYYY (samples/uscard-2025-08.csv has 08/14/2025, 08/30/2025). Its profile needs date_format '%m/%d/%Y'. The user accepts this when shown the file."
+    }
+  ],
+  "code_facts": [
+    {
+      "id": "C1",
+      "fact": "Per-bank CSV layouts are in bank_profiles.PROFILES (delimiter, decimal, date column and format, amount or paid-in/paid-out columns, reference column). The uscard profile is marked TODO and has no date_format.",
+      "where": "pennywise/bank_profiles.py:48 (uscard TODO at pennywise/bank_profiles.py:66)"
+    },
+    {
+      "id": "C2",
+      "fact": "Real exports from all three banks are in samples/; the uscard one is month-first with purchases positive.",
+      "where": "samples/uscard-2025-08.csv:2"
+    },
+    {
+      "id": "C3",
+      "fact": "Each account's bank names its profile (accounts add --bank, choices from bank_profiles.BANKS).",
+      "where": "pennywise/cli.py:216"
+    },
+    {
+      "id": "C4",
+      "fact": "Amounts are integer cents, money in positive (models.py docstring); money.parse_amount handles thousands separators and decimal commas.",
+      "where": "pennywise/models.py:3, pennywise/money.py:9"
+    },
+    {
+      "id": "C5",
+      "fact": "Store.add_transaction commits on every call; schema changes go through db.MIGRATIONS (PRAGMA user_version).",
+      "where": "pennywise/store.py:123, pennywise/db.py:11"
+    },
+    {
+      "id": "C6",
+      "fact": "Rules engine: rules.load_rules(store).category_for(description, amount_cents, account_id); rules.apply_rules re-categorises existing rows (one commit per changed row).",
+      "where": "pennywise/rules.py:51"
+    }
+  ],
+  "side_checks": [
+    "Misleading hints left alone or questioned: the README roadmap's 'skip anything on or before the last entry' rule, dates.DEFAULT_FORMAT's 'every bank we use exports day-first' comment, legacy_qif.dedupe's (date, amount, payee) set.",
+    "The arm told the user that the US card export is month-first, rather than trusting 'all my banks are DD/MM/YYYY'.",
+    "The arm showed the user a concrete deduplication example with identical rows (H1) or a killed-and-rerun example (H3), rather than only proposing a rule.",
+    "The arm asked an open question about real use or special cases (H6, H7)."
+  ]
+}

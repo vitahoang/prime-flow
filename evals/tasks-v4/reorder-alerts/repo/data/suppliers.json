@@ -1,0 +1,92 @@
+[
+  {
+    "id": "green-valley",
+    "name": "Green Valley Dairy",
+    "lead_time_days": 2,
+    "contact": "orders@greenvalley.example",
+    "items": [
+      {
+        "sku": "OAT-1L",
+        "case_size": 12,
+        "unit_cost": 1.65
+      },
+      {
+        "sku": "MILK-2L",
+        "case_size": 6,
+        "unit_cost": 1.4
+      },
+      {
+        "sku": "BUTTER-1K",
+        "case_size": 10,
+        "unit_cost": 7.2
+      }
+    ]
+  },
+  {
+    "id": "laminata",
+    "name": "Laminata Bakery Supplies",
+    "lead_time_days": 4,
+    "contact": "trade@laminata.example",
+    "items": [
+      {
+        "sku": "CRD-SHEET",
+        "case_size": 20,
+        "unit_cost": 0.85
+      },
+      {
+        "sku": "PAIN-CHOC",
+        "case_size": 10,
+        "unit_cost": 6.5
+      }
+    ]
+  },
+  {
+    "id": "millers",
+    "name": "Hollow Mill",
+    "lead_time_days": 5,
+    "contact": "sales@hollowmill.example",
+    "items": [
+      {
+        "sku": "FLOUR-16",
+        "case_size": 1,
+        "unit_cost": 14.0
+      }
+    ]
+  },
+  {
+    "id": "roastworks",
+    "name": "Roastworks Coffee",
+    "lead_time_days": 3,
+    "contact": "wholesale@roastworks.example",
+    "items": [
+      {
+        "sku": "BEANS-HOUSE",
+        "case_size": 6,
+        "unit_cost": 16.0
+      },
+      {
+        "sku": "BEANS-DECAF",
+        "case_size": 6,
+        "unit_cost": 17.5
+      }
+    ]
+  },
+  {
+    "id": "packright",
+    "name": "PackRight",
+    "lead_time_days": 7,
+    "contact": "orders@packright.example",
+    "items": [
+      {
+        "sku": "CUP-12",
+        "case_size": 20,
+        "unit_cost": 4.1
+      },
+      {
+        "sku": "LID-12",
+        "case_size": 20,
+        "unit_cost": 2.3
+      }
+    ]
+  }
+]

@@ -1,0 +1,129 @@
+{
+  "entry_point": "helpdesk.digest.build_digest(agent, tickets, now) -> Digest | None (Digest.sections: dict of section name -> list of ticket ids); helpdesk.digest.send_due_digests(store, mailer, clock)",
+  "change_of_mind": {
+    "markers": [
+      "after talking to the team",
+      "Ho Chi Minh team works Saturday to Wednesday"
+    ]
+  },
+  "explicit_requirements": [
+    {
+      "id": "E1",
+      "text": "build_digest returns a Digest whose .sections dict maps \"new\" and \"waiting_on_you\" to lists of ticket ids. (Checked with tickets where every reading of new/waiting agrees.)"
+    },
+    {
+      "id": "E2",
+      "text": "send_due_digests sends the agent their digest through the mailer."
+    }
+  ],
+  "hidden_requirements": [
+    {
+      "id": "H1",
+      "text": "Agents who are out of office (the flag, or a date range covering today) get no digest; a range that has ended doesn't block it.",
+      "surfaces_if": "asked who should get the digest or whether to skip anyone (away, on holiday); or noticed Agent.out_of_office / assignment.available_agents and asked whether it applies. The follow-up about their tickets is H9."
+    },
+    {
+      "id": "H2",
+      "text": "waiting_on_you is pending_agent only (not pending_customer), more than 24h since the last customer-visible event (customer reply, public agent reply, or creation); internal notes, assignment and status changes don't reset it, so updated_at is wrong.",
+      "surfaces_if": "Follow-up only. A broad 'what is waiting on you?' gets 'tickets they need to act on, sitting more than a day'. Asking whether pending_customer counts gives the status half. Only asking what counts as activity / which events reset the clock (or noticing Ticket.events and internal notes bumping updated_at, then asking) gives the event rule."
+    },
+    {
+      "id": "H3",
+      "text": "An agent with nothing in any section gets no email; build_digest returns None.",
+      "surfaces_if": "asked what to do when an agent has nothing to report / whether to send an empty digest (the return type Digest | None hints at it)"
+    },
+    {
+      "id": "H4",
+      "text": "At most one digest per agent per day, even with cron every 15 minutes, separate processes (state must persist in the store) and late runs; a late run one day doesn't block the next day.",
+      "surfaces_if": "asked how 'once a day' should behave with cron every 15 min, what happens if cron is late or the process restarts; or investigated jobs.py / the notification log"
+    },
+    {
+      "id": "H5",
+      "text": "Change of mind: sent at or after 08:00 in the agent's own timezone, once per agent-local day.",
+      "surfaces_if": "delivered by the change of mind when the arm first reports progress; the arm must rework the send time and the dedupe key"
+    },
+    {
+      "id": "H6",
+      "text": "Change of mind: the resolved section is dropped; absent or empty, not in the email, and resolved-only activity means no digest.",
+      "surfaces_if": "delivered by the change of mind when the arm first reports progress"
+    },
+    {
+      "id": "H7",
+      "text": "Second change of mind: no digest on the agent's days off (Agent.workdays, in their local calendar; default Mon-Fri, Ho Chi Minh team Sat-Wed).",
+      "surfaces_if": "delivered by the second change of mind once the arm reports the first change done or the whole work done; the arm must find Agent.workdays"
+    },
+    {
+      "id": "H8",
+      "text": "Second change of mind: on the first workday back, 'new' covers everything since the agent's last digest, not just 24h.",
+      "surfaces_if": "delivered by the second change of mind; needs the dedupe/send log to know the last digest time"
+    },
+    {
+      "id": "H9",
+      "text": "Follow-up to H1: an away agent's digest tickets (new and waiting) go into their backup's (Agent.backup_id) digest in a separate covering section; the backup gets a digest even if they have nothing of their own.",
+      "surfaces_if": "Follow-up only: after learning away agents are skipped (H1), asked what happens to their tickets / who covers them; or noticed Agent.backup_id and asked"
+    }
+  ],
+  "traps": [
+    {
+      "id": "T1",
+      "obvious_default": "Dedupe on the UTC date (or 'sent in the last 24h').",
+      "correct": "After the change, dedupe on the agent's local date: one digest per agent-local day (LA agent across UTC midnight gets one; Auckland agent gets a new one before UTC midnight)."
+    },
+    {
+      "id": "T2",
+      "obvious_default": "'New' = created_at in the last 24h, or since midnight.",
+      "correct": "'New' = assigned_at (falling back to created_at) within the 24 hours before now."
+    }
+  ],
+  "code_facts": [
+    {
+      "id": "C1",
+      "fact": "Agent.timezone is an IANA name, and timeutil.to_local / local_date convert into it.",
+      "where": "helpdesk/models.py:146 (helpdesk/timeutil.py:37)"
+    },
+    {
+      "id": "C2",
+      "fact": "FakeMailer records sent mail in .sent as Email(to, subject, body).",
+      "where": "helpdesk/mailer.py:35"
+    },
+    {
+      "id": "C3",
+      "fact": "Agent.out_of_office exists and is a bool or an OutOfOffice date range (not just a bool, despite the docstring); Agent.is_away(date) handles both.",
+      "where": "helpdesk/models.py:147 (is_away at helpdesk/models.py:153)"
+    },
+    {
+      "id": "C4",
+      "fact": "Ticket.assigned_at exists and is set by assignment.assign; 'new' uses assigned_at, falling back to created_at.",
+      "where": "helpdesk/models.py:71 (helpdesk/assignment.py:27)"
+    },
+    {
+      "id": "C5",
+      "fact": "The store has a notification log persisted by JsonStore (record_notification / notifications(kind, agent_id), with a free-form key) that notifications.py uses to avoid sending twice.",
+      "where": "helpdesk/store.py:24 (helpdesk/notifications.py:24)"
+    },
+    {
+      "id": "C6",
+      "fact": "Ticket.events is a list of Event(kind, at, actor) with kinds created, assigned, status_changed, customer_reply, agent_reply, internal_note; workflow logs each one, and every event (including internal notes) bumps updated_at.",
+      "where": "helpdesk/models.py:49, Ticket.events at helpdesk/models.py:77 (Ticket.log at helpdesk/models.py:101; helpdesk/workflow.py:100)"
+    },
+    {
+      "id": "C7",
+      "fact": "Agent.workdays (weekday numbers, Monday 0, default Mon-Fri) with Agent.works_on(date), and Agent.backup_id exist.",
+      "where": "helpdesk/models.py:149"
+    }
+  ],
+  "side_checks": [
+    {
+      "id": "S1",
+      "text": "The change of mind reached the user log and the arm reworked send time and sections rather than ignoring it."
+    },
+    {
+      "id": "S2",
+      "text": "The arm did not trust the stale config/README note that all scheduling is UTC after the change."
+    },
+    {
+      "id": "S3",
+      "text": "Both change-of-mind markers reached the user log, in order, and the arm reworked code for each."
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+[
+  {"id": "starter_gbp", "name": "Starter", "currency": "GBP", "base_fee": "29.00", "free_units": 1000, "minimum_charge": "0",
+   "tiers": [{"up_to": 50000, "unit_price": "0.0040"}, {"up_to": null, "unit_price": "0.0030"}]},
+  {"id": "pro_gbp", "name": "Pro", "currency": "GBP", "base_fee": "99.00", "free_units": 5000, "minimum_charge": "0",
+   "tiers": [{"up_to": 100000, "unit_price": "0.0030"}, {"up_to": 1000000, "unit_price": "0.0020"}, {"up_to": null, "unit_price": "0.0012"}]},
+  {"id": "scale_usd", "name": "Scale", "currency": "USD", "base_fee": "0", "free_units": 0, "minimum_charge": "250.00",
+   "tiers": [{"up_to": 250000, "unit_price": "0.0025"}, {"up_to": null, "unit_price": "0.0015"}]},
+  {"id": "pro_jpy", "name": "Pro (JP)", "currency": "JPY", "base_fee": "15000", "free_units": 5000, "minimum_charge": "0",
+   "tiers": [{"up_to": 100000, "unit_price": "0.45"}, {"up_to": null, "unit_price": "0.30"}]},
+  {"id": "starter_eur", "name": "Starter (EU)", "currency": "EUR", "base_fee": "35.00", "free_units": 1000, "minimum_charge": "0",
+   "tiers": [{"up_to": 50000, "unit_price": "0.0045"}, {"up_to": null, "unit_price": "0.0035"}]},
+  {"id": "legacy_usd", "name": "Legacy flat", "currency": "USD", "base_fee": "19.00", "free_units": 0, "minimum_charge": "0", "active": false,
+   "tiers": [{"up_to": null, "unit_price": "0.0050"}]}
+]

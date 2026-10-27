@@ -1,0 +1,66 @@
+[
+  {
+    "id": "PO-0141",
+    "supplier": "laminata",
+    "shop": "MKT",
+    "status": "received",
+    "ordered": "2026-10-06",
+    "expected": "2026-10-10",
+    "lines": [
+      {
+        "sku": "CRD-SHEET",
+        "qty": 120
+      }
+    ]
+  },
+  {
+    "id": "PO-0142",
+    "supplier": "green-valley",
+    "shop": "HAR",
+    "status": "cancelled",
+    "ordered": "2026-10-11",
+    "expected": "2026-10-13",
+    "lines": [
+      {
+        "sku": "OAT-1L",
+        "qty": 48
+      }
+    ]
+  },
+  {
+    "id": "PO-0143",
+    "supplier": "green-valley",
+    "shop": "MKT",
+    "status": "open",
+    "ordered": "2026-10-14",
+    "expected": "2026-10-16",
+    "lines": [
+      {
+        "sku": "OAT-1L",
+        "qty": 36
+      },
+      {
+        "sku": "MILK-2L",
+        "qty": 24
+      }
+    ]
+  },
+  {
+    "id": "PO-0144",
+    "supplier": "packright",
+    "shop": "STN",
+    "status": "open",
+    "ordered": "2026-10-12",
+    "expected": "2026-10-19",
+    "lines": [
+      {
+        "sku": "CUP-12",
+        "qty": 40
+      },
+      {
+        "sku": "LID-12",
+        "qty": 40
+      }
+    ]
+  }
+]

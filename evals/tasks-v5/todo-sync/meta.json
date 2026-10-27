@@ -1,0 +1,32 @@
+{
+  "entry_point": "tickoff.sync.sync(replica, hub) -> SyncReport  (replica: tickoff.replica.Replica, hub: tickoff.hub.Hub; SyncReport has int fields pushed and pulled)",
+  "explicit_requirements": [
+    {"id": "E1", "text": "`tickoff.sync.sync(replica, hub)` exists and returns a SyncReport; tasks made on one device show up on another after the first syncs and then the second does."},
+    {"id": "E2", "text": "Two or three devices that make non-conflicting changes (new tasks, edits to different tasks, an uncontested delete) and sync both ways end up with the same tasks in the same order."},
+    {"id": "E3", "text": "SyncReport.pushed / .pulled count changes sent and received; a sync with nothing new reports 0 and 0."}
+  ],
+  "hidden_requirements": [
+    {"id": "H1", "kind": "skim", "text": "Merging is per field: concurrent edits to different fields of the same task (title on one device, due date on another) both survive.", "surfaces_if": "Skim. docs/sync-notes.md's 2025 merge plan says the newest whole task wins, and the request says 'keep the newest edit'. If the arm proposes whole-task newest-wins, the user accepts unless the same message shows a concrete example where two devices change different fields of the same task and one edit is lost. An open question about conflicts gets the 'newest edit' belief; proposing per-field merge gets a yes. An open question naming the different-fields case (no proposal) gets 'keep both'."},
+    {"id": "H2", "kind": "skim", "text": "A delete beats an edit made before it (by Lamport order) but not one made after it: an edit made after the delete brings the task back, with the edit.", "surfaces_if": "Skim. docs/sync-notes.md's merge plan says a delete is final (tombstone). If the arm proposes 'delete always wins', the user accepts unless the same message shows a concrete example where a task is edited on one device after it was deleted on another and the edit is lost. Proposing the correct rule gets a yes. An open question naming the edit-after-delete case (no proposal) gets the true rule."},
+    {"id": "H3", "kind": "load-or-failure", "text": "A sync cut off by a dropped connection (hub.drop_after) is finished by the next sync: nothing lost, and the hub never stores a change twice; syncing again with nothing new changes nothing.", "surfaces_if": "Asked about failures, a dropped connection, retries, partial syncs, running sync twice, or whether resending is ok. Also reachable by reading hub.py (drop_after, NetworkDropped, head) and asking what should happen."},
+    {"id": "H4", "kind": "skim", "text": "Order: two devices inserting at the same position both keep their tasks, ordered by device id ascending (laptop's before phone's); inserting never renumbers other tasks, so an insert on one device can't undo a move on another.", "surfaces_if": "Skim on the direction: docs/sync-notes.md's merge plan says the higher device id goes first. The user accepts that unless shown a concrete resulting list with a laptop task and a phone task inserted at the same spot. The no-renumbering part is layered: 'should order sync?' -> 'keep my order'; 'per list?' -> 'within a list'; only asking about concurrent inserts/moves at the same spot or renumbering (the repo's _place renumbers) gets it."},
+    {"id": "H5", "kind": "unhinted", "text": "Tasks in the `work` list never leave the device they're on: sync never pushes changes to them (from any device); everything else syncs as normal.", "surfaces_if": "Only an open question about real use: what the lists are for, what must not sync, anything sensitive, any special lists or cases. Nothing in the repo points at it ('work' is just a list name in samples and tests)."},
+    {"id": "H6", "kind": "unhinted", "text": "Device `fridge` (the kitchen tablet the kids use) pushes only ticking tasks off or on (updates that change only `done`); its renames, deletes, new tasks and other edits never leave it.", "surfaces_if": "Only an open question about real use: which devices sync, who uses them, what goes wrong today, any special devices. Nothing in the repo mentions the fridge device."}
+  ],
+  "traps": [
+    {"id": "T1", "kind": "wrong-fact", "obvious_default": "The user says device clocks are always right, so order edits by wall time and keep the newest (README backs this; a comment in changelog.py says `wall` decides).", "correct": "Order edits by the Lamport counter; on a tie the higher device id wins (docs/sync-notes.md). The phone's clock is 2 hours behind (docs device_clock_skew note; samples/phone.json)."}
+  ],
+  "code_facts": [
+    {"id": "C1", "fact": "Every change-log entry has a Lamport counter; LamportClock.observe() exists and nothing calls it yet; op_id = device:lamport.", "where": "tickoff/changelog.py:16, tickoff/clock.py:39, tickoff/replica.py (_record)"},
+    {"id": "C2", "fact": "docs/sync-notes.md has a device_clock_skew section: the phone runs ~2h behind; use the Lamport counter; on a tie the higher device id wins.", "where": "docs/sync-notes.md"},
+    {"id": "C3", "fact": "samples/phone.json was copied from the laptop at ~19:03 laptop time; the phone's later entries (lamport 17+) have wall times around 17:05.", "where": "samples/phone.json, samples/README.md"},
+    {"id": "C4", "fact": "Hub: push/pull(since)/stored()/head(device); drop_after(n) raises NetworkDropped after storing n more changes; pull excludes the caller's own changes.", "where": "tickoff/hub.py"},
+    {"id": "C5", "fact": "Local insert/move renumbers every task after the position (Replica._place), logging an order update for each.", "where": "tickoff/replica.py (_place)"},
+    {"id": "C6", "fact": "docs/sync-notes.md has a stale 2025 merge plan: newest whole task wins, a delete is final, ties in order put the higher device id first. All three are wrong for this user (H1, H2, H4).", "where": "docs/sync-notes.md (Shape)"}
+  ],
+  "side_checks": [
+    "The arm noticed the clock-skew evidence (docs note or sample data) and told the user before relying on wall time.",
+    "The misleading README line ('wall times can be compared between devices') and changelog.py comment were left alone or corrected, not relied on.",
+    "The arm showed the user concrete conflict examples (before/after) rather than only abstract questions."
+  ]
+}

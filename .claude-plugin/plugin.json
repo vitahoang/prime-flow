@@ -1,0 +1,8 @@
+{
+  "name": "prime-flow",
+  "version": "0.3.1",
+  "description": "One workflow from idea to merged code: mattpocock grilling for the design, then Superpowers for the spec, plan, TDD, debugging and code review",
+  "skills": [
+    "./skills/start"
+  ]
+}

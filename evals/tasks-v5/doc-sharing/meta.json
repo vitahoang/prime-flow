@@ -1,0 +1,137 @@
+{
+  "entry_point": "folio.access.grant(store, resource_id, principal_id, role); folio.access.revoke(store, resource_id, principal_id); folio.access.can(store, user_id, action, resource_id) -> bool  (store built with folio.store.Store setup helpers)",
+  "explicit_requirements": [
+    {
+      "id": "E1",
+      "text": "A direct viewer grant on a doc allows read but not comment or edit; someone with no grant can do nothing."
+    },
+    {
+      "id": "E2",
+      "text": "The owner can read, comment, edit and share their own (unrestricted, untrashed) doc."
+    },
+    {
+      "id": "E3",
+      "text": "Roles are ordered: commenter can read and comment but not edit; editor can read, comment and edit."
+    },
+    {
+      "id": "E4",
+      "text": "A grant on a folder covers documents in it and in its subfolders, and not documents elsewhere."
+    },
+    {
+      "id": "E5",
+      "text": "revoke removes a direct user grant on a doc or a folder."
+    },
+    {
+      "id": "E6",
+      "text": "A grant to a group reaches its (direct) members and nobody else."
+    }
+  ],
+  "hidden_requirements": [
+    {
+      "id": "H1",
+      "kind": "example-only",
+      "text": "Across paths the highest role wins: a doc-level grant can raise access but never lowers what a person has from a folder or a group (viewer via group on the doc + editor via the folder = editor).",
+      "surfaces_if": "Only when the arm shows a worked example / access table / scenario where one person has two different roles by two paths, e.g. viewer via a group share on the doc and editor via the folder. Abstract questions ('which grant wins?') get 'whatever's simplest, sounds fine'."
+    },
+    {
+      "id": "H2",
+      "kind": "skim",
+      "text": "Restricted documents ignore folder grants; only grants made on the doc itself (to users or groups) count. The owner and workspace admins always have full access (the skim part: admins). Turning restricted off brings folder grants back.",
+      "surfaces_if": "Asking what `restricted` should do gives the folder rule. The admin part is skim: the obvious proposal 'restricted = owner + direct shares only' (README says admins only 'manage people and groups') is accepted, unless the message shows an example with an admin shut out of a restricted doc, or asks an open question about who else / what admins can do."
+    },
+    {
+      "id": "H3",
+      "kind": "wrong-fact",
+      "text": "Group membership includes nested subgroups to any depth; group loops (A contains B contains A) are handled without hanging, with everyone in the loop counting as a member of each group in it.",
+      "surfaces_if": "The user says 'groups can't contain groups'. Reached by checking the code/data (Group.subgroups, Store.add_subgroup, data/sample_workspace.json nests Everyone > Studio > Architects and Design <-> Brand) and pointing it out; the loop is visible only in the sample data and the 'folio groups' output, and the loop answer comes if asked about cycles. Loop comments were removed from the repo in v5.1."
+    },
+    {
+      "id": "H4",
+      "kind": "skim",
+      "text": "share is allowed for editors (by any path) and owners; viewers and commenters can't share. On a restricted doc only the owner (or an admin) can share; editors there can edit but not share.",
+      "surfaces_if": "Skim. The obvious proposal 'share needs editor' is accepted. The restricted exception comes out only from an example showing an editor sharing a restricted doc, or an open question about what should stop an editor sharing / whether restricted changes sharing."
+    },
+    {
+      "id": "H5",
+      "kind": "wide",
+      "text": "A suspended user can do nothing, even on their own documents and even with editor grants; reactivating restores everything.",
+      "surfaces_if": "asked about suspended/deactivated accounts, or noticed User.status / Store.suspend_user and asked"
+    },
+    {
+      "id": "H6",
+      "kind": "skim",
+      "text": "Guests (email domain differs from the workspace domain; users.is_external) only get grants made to them by name on the resource itself; folder grants (even to them by name) never reach the docs inside, and group grants never reach them; and they top out at commenter (never edit or share). Refusing a direct editor grant to a guest is also allowed.",
+      "surfaces_if": "Skim. The obvious proposal 'guests are capped at commenter / can't be editors' is accepted. The by-name-only rule comes out only from an example where a guest gets in through a group or folder share, or an open question about how sharing works for guests / whether groups and folders reach them."
+    },
+    {
+      "id": "H7",
+      "kind": "wide",
+      "text": "A trashed document is accessible only to its owner (not grantees, not admins); restoring it brings everyone's access back.",
+      "surfaces_if": "asked about trashed/deleted documents, or noticed Document.trashed / Store.trash_document and asked"
+    },
+    {
+      "id": "H8",
+      "kind": "unhinted",
+      "text": "Anything under a folder named HR (any depth, case-insensitive) is accessible only to members of the group named HR (and the owner): grants to anyone else, directly or through a group or folder, give nothing. Refusing such a grant is also allowed.",
+      "surfaces_if": "Only an open question about real use: how the studio uses folio / sharing, who uses it, what goes wrong today, any special folders, teams or cases. Nothing in the repo or its git history mentions HR (the sample's HR folder was removed in v5.1, and the history was rewritten so no earlier commit has it)."
+    },
+    {
+      "id": "H9",
+      "kind": "unhinted",
+      "text": "Anything under a folder named Issued (any depth, case-insensitive) is frozen: apart from the owner, nobody can edit, whatever their role; editors there still read and comment.",
+      "surfaces_if": "Only an open question about what goes wrong today, how projects run, or special folders or cases. Nothing in the repo mentions Issued."
+    }
+  ],
+  "traps": [
+    {
+      "id": "T1",
+      "kind": "wide",
+      "obvious_default": "Grants accumulate (e.g. a list of grants, or 'highest wins' applied to the same principal on the same resource), so re-granting a lower role leaves the higher one.",
+      "correct": "Granting again to the same principal on the same resource replaces the role, which is how you downgrade someone."
+    },
+    {
+      "id": "T2",
+      "kind": "wide",
+      "obvious_default": "Expand a group into per-user grants at grant time, so revoking the group deletes the member's own direct grant too.",
+      "correct": "revoke removes only that principal's grant on that resource; a member's own direct grant stays."
+    }
+  ],
+  "code_facts": [
+    {
+      "id": "C1",
+      "fact": "Groups nest: Group.subgroups, Store.add_subgroup (no loop check); the sample data has Everyone > Studio > Architects and a Design <-> Brand loop.",
+      "where": "folio/models.py:67, folio/store.py:182, tools/make_sample.py:40, data/sample_workspace.json"
+    },
+    {
+      "id": "C2",
+      "fact": "Document.restricted exists, set by Store.set_restricted and the dead v1 importer; README calls it a legacy flag.",
+      "where": "folio/models.py:90, folio/store.py:261, README.md:16"
+    },
+    {
+      "id": "C3",
+      "fact": "Workspace admins: Workspace.admins / is_admin, Store.add_admin.",
+      "where": "folio/models.py:35, folio/store.py:131"
+    },
+    {
+      "id": "C4",
+      "fact": "User.status is active or suspended (User.active); Store.suspend_user / reactivate_user.",
+      "where": "folio/models.py:14, folio/store.py:146"
+    },
+    {
+      "id": "C5",
+      "fact": "Guests are users whose email domain differs from Workspace.domain: users.is_external.",
+      "where": "folio/users.py:6"
+    },
+    {
+      "id": "C6",
+      "fact": "Document.trashed with Store.trash_document / restore_document; folders.ancestors gives a folder chain nearest first.",
+      "where": "folio/models.py:91, folio/store.py:266, folio/folders.py:10"
+    }
+  ],
+  "side_checks": [
+    "The arm checked the user's 'groups can't contain groups' against the code or sample data and told them.",
+    "The arm showed the user a concrete access example (table or scenario) with a person reaching a doc two ways.",
+    "README's 'flat list of people' and 'legacy flag' lines: note whether the arm updated or flagged them.",
+    "The arm asked open questions about real use (what goes wrong today, special folders/teams) rather than only proposing rules from the code."
+  ]
+}

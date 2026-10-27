@@ -1,0 +1,135 @@
+{
+  "entry_point": "python -m stockroom reorder [--shop SHOP] [--json]  (data dir from $STOCKROOM_DATA, today from $STOCKROOM_TODAY)",
+  "explicit_requirements": [
+    {
+      "id": "E1",
+      "text": "`python -m stockroom reorder` exits 0 and lists, in plain text, an item that has clearly run out; an item with huge stock and little use is not listed."
+    },
+    {
+      "id": "E2",
+      "text": "`--json` prints a list with one entry per line to order, each with at least sku, shop and order_qty."
+    },
+    {
+      "id": "E3",
+      "text": "`--shop SHOP` limits the output to that shop."
+    }
+  ],
+  "hidden_requirements": [
+    {
+      "id": "H1",
+      "text": "Reorder point is usage-based: average daily usage over the last 28 days x (days until a delivery can arrive + 3 days' safety stock). An item needs ordering when cover is below it.",
+      "surfaces_if": "Open questions get layers: how to decide -> 'run out before a delivery, plus a little cushion'; how usage is measured -> 28-day average; how big the cushion is -> 3 days. Skim: the repo hints at a week's spare (legacy_import.py docstring, the old sheet's 'How to order' tab). If the arm proposes any other cushion (e.g. 7 days) the user says yes, unless the same message shows a worked example with the reorder point or days of cover for an item, where the cushion's size is visible.",
+      "kind": "skim"
+    },
+    {
+      "id": "H2",
+      "text": "Usage counts only sales and waste. Transfers between shops (in or out) and returns to the supplier are not usage.",
+      "surfaces_if": "Needs a follow-up: after usage comes up (H1), asked which movement types count as usage, or whether transfers/returns count. Also reachable by reading the MovementType enum and asking about it.",
+      "kind": "deep"
+    },
+    {
+      "id": "H3",
+      "text": "The suggested quantity is rounded UP to whole supplier cases (case_size).",
+      "surfaces_if": "asked how quantities get ordered, whether there are pack/case sizes or supplier minimums, or whether case_size should be used",
+      "kind": "wide"
+    },
+    {
+      "id": "H4",
+      "text": "Conflict between 'never run out' and 'the owner hates cash tied up on shelves'. Resolution: order up to at most (days until delivery + 14 days) x daily usage minus (on hand + on order), then round up to a case.",
+      "surfaces_if": "Needs the tension named: 'how much should we order?' gets only the two vague goals; pointing out the conflict, or an open question about the cap, gets (lead + 14 days). Skim: the repo hints at 'order two weeks' worth at a time' (legacy_import.py docstring), i.e. 14 days from today, ignoring the lead time. A proposal of any other cap is accepted unless the same message shows a worked example with the order quantity and the days it covers counted from today.",
+      "kind": "skim"
+    },
+    {
+      "id": "H5",
+      "text": "Computed per shop: each shop's own stock, usage and open orders, one line per shop and item. --shop filters to one shop.",
+      "surfaces_if": "asked whether reorder is per shop or chain-wide, who orders / where deliveries go, or whether `stock`'s chain-wide default should apply",
+      "kind": "wide"
+    },
+    {
+      "id": "H6",
+      "kind": "example-only",
+      "text": "Items from a supplier with on_hold=true are not in the order list (text table or JSON list); they are shown in a separate 'on hold' note in the text output instead.",
+      "surfaces_if": "Only when the arm shows a concrete example list (sample output, table, numbers) that includes an item from an on-hold supplier, e.g. croissant dough or pain au chocolat from Laminata. on_hold appears only in data/suppliers.json (and the generator that writes it); the model and loader ignore it. An abstract question about on_hold gets 'Marco's dispute flag, your call'."
+    },
+    {
+      "id": "H7",
+      "kind": "wrong-fact",
+      "text": "Suppliers deliver only on their delivery_days. The wait is from today to the first delivery day on or after today + lead_time_days; reorder point and cap use that wait instead of lead_time_days.",
+      "surfaces_if": "The user says 'deliveries come every day' whenever lead time or deliveries come up. Surfaces when the arm reads data/suppliers.json, where delivery_days sits unused by the code, and points it out; the user then accepts and gives the rule."
+    },
+    {
+      "id": "H8",
+      "kind": "load-or-failure",
+      "text": "The real ledger is about 400k movements (3 shops, a year). The command must stay fast (user: under 2s on the back-office tablet): one pass over the movements (tested as CPU time), not a scan per item or per (shop, item).",
+      "surfaces_if": "Asked how much data there is, how big the movements file is, or how fast it needs to be. The demo data is small, so nothing in the repo shows it."
+    },
+    {
+      "id": "H9",
+      "kind": "unhinted",
+      "text": "Catering jobs (sales with 'catering' in the movement note, any case) are not usage.",
+      "surfaces_if": "Only to an open question about real use: what goes wrong today, special cases, unusual sales, anything that would throw the numbers off. Nothing in the repo or demo data mentions catering."
+    },
+    {
+      "id": "H10",
+      "kind": "unhinted",
+      "text": "A shop open for less than 28 days (shops.json 'opened') averages usage over the days it has been open, not 28.",
+      "surfaces_if": "Only to an open question about real use: what's coming up, any new shops, special cases. The 'opened' field exists for shop listings; nothing ties it to usage."
+    }
+  ],
+  "traps": [
+    {
+      "id": "T1",
+      "obvious_default": "Use items.json min_stock as the threshold (README: 'used for reorder warnings (planned)'; models.py comment says the same).",
+      "correct": "Ignore min_stock entirely; it is years stale. Use the usage-based reorder point.",
+      "kind": "wide"
+    },
+    {
+      "id": "T2",
+      "obvious_default": "Compare only stock on hand (or reuse purchasing.not_received, which also counts cancelled POs).",
+      "correct": "Cover = on hand + qty on OPEN purchase orders for that shop. Received POs are already in on-hand; cancelled ones never arrive. Items with enough on order are not listed.",
+      "kind": "skim",
+      "surfaces_if": "Open question about stock already on order -> open POs for that shop only. Skim: purchasing.not_received ('ordered but not received yet') also counts cancelled POs; a proposal to reuse it is accepted unless the same message shows an example with a cancelled PO being counted."
+    }
+  ],
+  "code_facts": [
+    {
+      "id": "C1",
+      "fact": "Each supplier has lead_time_days in the model. data/suppliers.json also has delivery_days and, for Laminata, on_hold, but the model and loader ignore both.",
+      "where": "stockroom/models.py:90, stockroom/store.py:139, data/suppliers.json"
+    },
+    {
+      "id": "C2",
+      "fact": "case_size is per supplier per SKU (SupplierItem.case_size), with Supplier.case_size(sku) as the lookup.",
+      "where": "stockroom/models.py:77 (lookup at stockroom/models.py:94)"
+    },
+    {
+      "id": "C3",
+      "fact": "Movement types are an enum: sale, delivery, waste, transfer_in, transfer_out, return (return = sent back to the supplier).",
+      "where": "stockroom/models.py:15"
+    },
+    {
+      "id": "C4",
+      "fact": "PO statuses are an enum open/received/cancelled; PurchaseOrder.is_open() and qty_for(sku) exist; a received PO's delivery is already a movement.",
+      "where": "stockroom/models.py:39 (is_open at stockroom/models.py:145)"
+    },
+    {
+      "id": "C5",
+      "fact": "Stock on hand per (shop, sku) is ledger.on_hand_by_shop; ledger.window(today, days) gives an inclusive date window; today comes from clock.today() ($STOCKROOM_TODAY); the data dir from --data / $STOCKROOM_DATA.",
+      "where": "stockroom/ledger.py:46, stockroom/ledger.py:97, stockroom/clock.py:14, stockroom/config.py:22"
+    },
+    {
+      "id": "C6",
+      "fact": "Shops have an optional 'opened' date; movements have a free-text 'note'.",
+      "where": "stockroom/models.py:49, stockroom/models.py:114"
+    }
+  ],
+  "side_checks": [
+    "Misleading helpers left as they were or used correctly: ledger.outflow_by_sku counts transfers and returns as 'used up'; purchasing.not_received counts cancelled POs. Note whether the arm reused either one.",
+    "The arm told the user that min_stock looked stale or asked before relying on it.",
+    "The arm named the tension between never running out and not tying up cash, instead of picking a cover period silently.",
+    "The arm noticed delivery_days in suppliers.json and corrected the user's 'deliveries come every day'.",
+    "The arm showed the user a worked example list (e.g. run on the demo data) before or while building.",
+    "The arm asked about data volume or timed the command on a large generated ledger.",
+    "The arm asked an open question about real use or special cases (catering jobs, the new shop) rather than only confirming code-derived rules."
+  ]
+}

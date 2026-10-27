@@ -1,0 +1,32 @@
+{
+  "invoices": [
+    {"id": "INV-0907", "customer": "C002", "issued_on": "2025-11-20", "terms": "Net 30", "currency": "AUD",
+     "lines": [{"description": "Brand refresh, phase 2", "quantity": 1, "unit_price": "4800.00"}],
+     "notes": "Disputed scope, see email of 3 Dec 2025."},
+    {"id": "INV-0911", "customer": "C005", "issued_on": "2025-12-02", "terms": "Net 15", "currency": "GBP",
+     "lines": [{"description": "Catalogue layout", "quantity": 24, "unit_price": "45.00"}]},
+    {"id": "INV-1031", "customer": "C005", "issued_at": "2026-08-28T10:05:00Z", "terms": "Net 30", "currency": "GBP",
+     "lines": [{"description": "Autumn catalogue design", "quantity": 1, "unit_price": "1850.00"}], "tax_rate": "0.20"},
+    {"id": "INV-1036", "customer": "C003", "issued_at": "2026-09-02T16:40:00Z", "terms": "Net 30", "currency": "USD",
+     "lines": [{"description": "Podcast artwork", "quantity": 6, "unit_price": "350.00"}], "po_number": "BL-2291"},
+    {"id": "INV-1038", "customer": "C001", "issued_at": "2026-09-04T16:45:00Z", "terms": "Net 30", "currency": "SGD",
+     "lines": [{"description": "Annual report design", "quantity": 1, "unit_price": "6200.00"},
+               {"description": "Print management", "quantity": 1, "unit_price": "480.00"}]},
+    {"id": "INV-1040", "customer": "C006", "issued_at": "2026-09-08T11:30:00Z", "terms": "Net 15", "currency": "INR",
+     "lines": [{"description": "Dashboard UI kit", "quantity": 1, "unit_price": "185000.00"}]},
+    {"id": "INV-1041", "customer": "C004", "issued_at": "2026-09-10T09:15:00Z", "terms": "Net 15", "currency": "USD",
+     "lines": [{"description": "Logo and signage", "quantity": 1, "unit_price": "1400.00"}]},
+    {"id": "INV-1043", "customer": "C002", "issued_at": "2026-09-14T15:10:00Z", "terms": "Net 30", "currency": "AUD",
+     "lines": [{"description": "Website design", "quantity": 1, "unit_price": "7400.00"},
+               {"description": "Photography (half day)", "quantity": 1, "unit_price": "900.00"}], "tax_rate": "0.10"},
+    {"id": "INV-1044", "customer": "C007", "issued_at": "2026-09-15T08:20:00Z", "terms": "Net 30", "currency": "AUD",
+     "lines": [{"description": "Label design, 3 SKUs", "quantity": 3, "unit_price": "650.00"}]},
+    {"id": "INV-1045", "customer": "C008", "issued_at": "2026-09-21T13:00:00Z", "terms": "Net 30", "currency": "NOK",
+     "lines": [{"description": "Packaging concept", "quantity": 1, "unit_price": "42000.00"}]},
+    {"id": "INV-1046", "customer": "C001", "issued_at": "2026-09-28T09:30:00Z", "terms": "Net 15", "currency": "SGD",
+     "lines": [{"description": "Social templates", "quantity": 12, "unit_price": "95.00"}]},
+    {"id": "INV-1047", "customer": "C003", "issued_at": "2026-10-01T17:20:00Z", "terms": "Net 30", "currency": "USD",
+     "lines": [{"description": "Motion graphics", "quantity": 8, "unit_price": "275.00"}], "void": true,
+     "notes": "Replaced by INV-1048."}
+  ]
+}

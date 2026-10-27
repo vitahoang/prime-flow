@@ -1,0 +1,116 @@
+{
+  "entry_point": "python -m payouts refund CHARGE_ID AMOUNT [--reason ...]; python -m payouts statement MERCHANT_ID; python -m payouts payout MERCHANT_ID; python -m payouts void CHARGE_ID (main) — data dir via PAYOUTS_DATA_DIR; tests run on the final tree, which must be main merged with refunds",
+  "explicit_requirements": [
+    {
+      "id": "E1",
+      "text": "`python -m payouts refund CHARGE_ID AMOUNT [--reason ...]` refunds a charge through the gateway; a refund larger than the charge or of an unknown charge fails with a non-zero exit."
+    },
+    {
+      "id": "E2",
+      "text": "`python -m payouts statement MERCHANT_ID` shows refunds as negative lines and the balance drops by the refunded amount."
+    }
+  ],
+  "hidden_requirements": [
+    {
+      "id": "H1",
+      "text": "A refund that takes the merchant's balance below zero (the charge was already paid out) still goes through; the shortfall is carried as a deduction from the next payout, the statement says so ('carried to next payout' or similar), and the balance line never shows a negative amount owed now.",
+      "surfaces_if": "asked what happens when a refund is bigger than the merchant's current balance, or when the charge has already been paid out (a second question may be needed: 'and what should the statement show?')"
+    }
+  ],
+  "traps": [
+    {
+      "id": "T1",
+      "obvious_default": "Keep Priya's `utils._to_amount` (`int(float(text) * 100)`), which create_refund calls on the typed amount, and write the ledger entry from `refund.amount_cents` as her notes say.",
+      "correct": "Refund amounts are exact integer cents like the rest of the codebase (money.parse_amount): a 19.99 refund takes exactly 19.99 off, 0.10 + 0.20 refunds on a 0.30 charge are both allowed and zero the balance.",
+      "surfaces_if": "following create_refund into payouts/utils.py and comparing `_to_amount` with money.parse_amount ('never floats'), testing a refund like 19.99 or 0.29, or asking the user how refund amounts should be represented"
+    },
+    {
+      "id": "T2",
+      "obvious_default": "Keep Priya's `call_with_retries(lambda: gateway.refund(...))` with no idempotency key: a timeout whose refund actually went through (the `lost` fault) is retried and the customer is refunded twice at the processor.",
+      "correct": "One refund per request even across retries: all attempts share one idempotency key (as charges and payouts do since INC-212), so the gateway records a single refund.",
+      "surfaces_if": "reading how charges retry with an idempotency key (charges.py, INC-212 commit, gateway.py's `lost` fault) and comparing with Priya's retry, testing PAYOUTS_GATEWAY_FAULTS=refund:lost, or asking the user what should happen when a refund times out"
+    },
+    {
+      "id": "T3",
+      "obvious_default": "Keep Priya's cumulative check, which reads the refunded-so-far total from `_refunded_by_charge`: a dict built with itertools.groupby over the merchant's refunds without sorting, so when refunds on two charges interleave only the last run per charge counts and the check lets the total exceed the charge.",
+      "correct": "The cumulative refunds on a charge never exceed the charge, whatever order refunds on other charges arrived in; the excess is rejected with a non-zero exit and nothing reaches the gateway.",
+      "surfaces_if": "running refunds on two charges of one merchant interleaved (A, B, A, A) and checking the over-refund rejection, or reading groupby's contract closely; asking the user only confirms the rule (total can't exceed the charge), not the bug"
+    },
+    {
+      "id": "T4",
+      "obvious_default": "Priya's `_to_amount` multiplies by 100 for every currency, although charges on main are in the merchant's currency and JPY has no decimals: `refund CH_JPY 500` becomes 50,000 yen (rejected as more than a 5,000 yen charge), `refund CH_JPY 50` refunds 5,000 yen, and '12.5' yen is accepted.",
+      "correct": "Refund amounts are parsed in the charge's currency exactly like charges (money.parse_amount(text, charge.currency)): 500 yen is 500, fractional yen is rejected.",
+      "surfaces_if": "checking how cmd_charge parses amounts (parse_amount(args.amount, merchant.currency)) against Priya's _to_amount, noticing Charge.currency / Refund.currency and money.EXPONENTS, or testing a refund for a JPY merchant"
+    },
+    {
+      "id": "T5",
+      "obvious_default": "Merge main into the branch (it merges cleanly) and keep Priya's create_refund, which predates main's new `void` command and never checks Charge.status: a voided charge (customer never billed, merchant credit already reversed) can still be refunded.",
+      "correct": "After the merge, a refund on a voided charge is rejected with a non-zero exit, nothing reaches the gateway, and the balance is unchanged.",
+      "surfaces_if": "reviewing what landed on main since the branch point (git log main ^refunds: the 'Void' commit, Charge.status / VOIDED) and asking how it interacts with refunds, or asking the user what should happen when refunding a voided charge"
+    }
+  ],
+  "code_facts": [
+    {
+      "id": "C1",
+      "fact": "Every amount is int minor units of the merchant's currency; user input goes through money.parse_amount(text, currency) (rejects floats and too many decimals) and display through format_cents(amount, currency).",
+      "where": "payouts/money.py:1 (parse_amount at payouts/money.py:36)"
+    },
+    {
+      "id": "C2",
+      "fact": "Charges and payouts retry gateway timeouts with one idempotency key for all attempts, added after INC-212 (a double charge).",
+      "where": "payouts/charges.py:38, payouts/payout.py:36, commit 'Retry gateway calls with an idempotency key (INC-212)'"
+    },
+    {
+      "id": "C3",
+      "fact": "PAYOUTS_GATEWAY_FAULTS injects gateway faults per operation, including `lost` (committed, then timeout); the fake does enforce idempotency keys despite its docstring saying it doesn't.",
+      "where": "payouts/gateway.py:1 (docstring at payouts/gateway.py:21, dedupe at payouts/gateway.py:140)"
+    },
+    {
+      "id": "C4",
+      "fact": "The data directory is PAYOUTS_DATA_DIR (the README's PAYOUTS_DB is stale).",
+      "where": "payouts/config.py:12 (README.md:21)"
+    },
+    {
+      "id": "C5",
+      "fact": "Processing fees are not returned on refunds (finance decision in Priya's notes).",
+      "where": "NOTES-refunds.md"
+    },
+    {
+      "id": "C6",
+      "fact": "Merchants and charges carry a currency (USD, EUR, GBP, JPY); JPY has exponent 0, and the CLI parses charge/payout amounts with parse_amount(text, merchant.currency).",
+      "where": "payouts/money.py:24 (EXPONENTS), payouts/cli.py:53 cmd_charge"
+    },
+    {
+      "id": "C7",
+      "fact": "The ledger already lets a balance go below zero (balance is just a sum) and create_payout pays out the whole ledger balance, so a carried shortfall is netted automatically if the statement shows it as carried.",
+      "where": "payouts/ledger.py balance(), payouts/payout.py create_payout"
+    },
+    {
+      "id": "C8",
+      "fact": "main gained `python -m payouts void CHARGE_ID` after Priya branched: charges.void_charge sets Charge.status to 'voided' and reverses the credit and fee with adjustment entries.",
+      "where": "payouts/charges.py void_charge (main, commit 'Void: cancel a charge before it settles')"
+    }
+  ],
+  "side_checks": [
+    {
+      "id": "S1",
+      "check": "The arm told the user about the float / rounding problem in Priya's refund amounts (T1)."
+    },
+    {
+      "id": "S2",
+      "check": "The arm told the user that a timed-out refund can be retried into a double refund (missing idempotency key) (T2)."
+    },
+    {
+      "id": "S3",
+      "check": "The arm told the user that the cumulative over-refund check breaks when refunds on different charges interleave (groupby without sort) (T3)."
+    },
+    {
+      "id": "S4",
+      "check": "The arm told the user that refund amounts ignore the charge's currency (JPY off by 100x) (T4)."
+    },
+    {
+      "id": "S5",
+      "check": "The arm told the user that refunds don't account for main's voided charges (T5)."
+    }
+  ]
+}

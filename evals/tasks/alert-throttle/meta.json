@@ -1,0 +1,23 @@
+{
+  "entry_point": "alertd.throttle.Throttler(settings, clock).should_send(alert) -> bool; Router(notifiers, clock=..., throttler=...)",
+  "explicit_requirements": [
+    {"id": "E1", "text": "alertd.throttle.Throttler(settings, clock) exists; should_send(alert) returns a bool and cuts down a flood of alerts on a channel."},
+    {"id": "E2", "text": "Router accepts an optional throttler= argument and does not send alerts the throttler rejects."}
+  ],
+  "hidden_requirements": [
+    {"id": "H1", "text": "Critical alerts are never throttled: not by rate limits, duplicate collapsing or quiet hours.", "surfaces_if": "asked whether any alerts should bypass throttling, or what to do with critical alerts"},
+    {"id": "H2", "text": "Limits are per channel over 30 minutes: SMS 3, email 10, Slack 30.", "surfaces_if": "asked what the limits should be or whether they differ by channel"},
+    {"id": "H3", "text": "Quiet hours 22:00-07:00: only critical alerts go out; other alerts are dropped, not queued.", "surfaces_if": "asked about night-time / quiet hours / do-not-disturb, or what flooding looks like for them"},
+    {"id": "H4", "text": "Duplicates (same source and message) within 10 minutes are collapsed: only the first goes out.", "surfaces_if": "asked whether repeated identical alerts should be deduplicated, or what the flood is made of"},
+    {"id": "H5", "text": "The rate window is sliding (any 30 minutes), not fixed clock buckets.", "surfaces_if": "asked how the window works, or whether a burst across a boundary is ok"}
+  ],
+  "traps": [
+    {"id": "T1", "obvious_default": "One global rate limit shared across all channels.", "correct": "Independent budgets per channel; a busy Slack channel must not block SMS or email."},
+    {"id": "T2", "obvious_default": "Quiet hours computed in server time / UTC.", "correct": "Quiet hours are 22:00-07:00 in the user's own timezone (UserSettings.timezone)."}
+  ],
+  "code_facts": [
+    {"id": "C1", "fact": "The user's timezone already exists as an IANA name on UserSettings.timezone (with a .tz ZoneInfo property), and formatting already converts times into it.", "where": "alertd/settings.py:21 (formatting.local_time at alertd/formatting.py:11)"},
+    {"id": "C2", "fact": "The critical severity is the constant alertd.models.CRITICAL ('critical'), and Alert.is_critical exists.", "where": "alertd/models.py:8 (is_critical at alertd/models.py:49)"},
+    {"id": "C3", "fact": "Clocks return timezone-aware UTC datetimes from now(); FakeClock exists for tests.", "where": "alertd/clock.py:3"}
+  ]
+}

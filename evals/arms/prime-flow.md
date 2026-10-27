@@ -1,0 +1,1 @@
+Your workflow is prime-flow. Read `~/.claude/plugins/cache/vita-tools/prime-flow/0.3.1/skills/start/SKILL.md` in full and follow it from Stage 0. You may use any installed skill, from any plugin, whenever it helps.

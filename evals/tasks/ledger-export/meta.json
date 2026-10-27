@@ -1,0 +1,22 @@
+{
+  "entry_point": "python -m ledger export --format csv [--from DATE] [--to DATE]",
+  "explicit_requirements": [
+    {"id": "E1", "text": "`python -m ledger export --format csv` writes the entries as CSV (header plus one row per entry) to stdout and exits 0."},
+    {"id": "E2", "text": "`--from DATE` and `--to DATE` (YYYY-MM-DD) limit the exported entries; either may be omitted."}
+  ],
+  "hidden_requirements": [
+    {"id": "H1", "text": "The CSV opens cleanly in Excel on Windows: UTF-8 with a BOM and CRLF line endings.", "surfaces_if": "The arm asks where or in what program the CSV will be opened, or asks about encoding / line endings."},
+    {"id": "H2", "text": "Dates are shown in the user's configured timezone (settings `timezone`), not UTC, and --from/--to are local calendar dates.", "surfaces_if": "The arm asks whether dates should be UTC or local, or notices that entries are stored in UTC while the CLI displays them in the configured timezone."},
+    {"id": "H3", "text": "Archived entries are excluded from the export by default.", "surfaces_if": "The arm asks what to do with archived entries."}
+  ],
+  "traps": [
+    {"id": "T1", "obvious_default": "Reuse formatting.format_amount, producing \"$1,234.50\" / \"-$45.00\".", "correct": "Plain numbers with two decimals, no symbol or separators: \"1234.50\", \"-45.00\"."},
+    {"id": "T2", "obvious_default": "Reuse query.in_range / parse_date, so --to is an exclusive midnight-UTC bound.", "correct": "--to is inclusive of the whole local calendar day."}
+  ],
+  "code_facts": [
+    {"id": "C1", "fact": "The user's timezone is configured as `timezone` in settings (default America/Chicago, overridable in $LEDGER_HOME/config.json).", "where": "ledger/settings.py:17"},
+    {"id": "C2", "fact": "The CLI's date display format is the `date_format` setting, default %m/%d/%Y.", "where": "ledger/settings.py:19"},
+    {"id": "C3", "fact": "Entries store timestamps as UTC strings and amounts as integer cents (positive income, negative expense).", "where": "ledger/models.py:21"},
+    {"id": "C4", "fact": "An `archived` flag exists on entries; `balance` already skips archived entries via query.active, while `list` shows them marked.", "where": "ledger/query.py:32"}
+  ]
+}

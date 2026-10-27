@@ -1,0 +1,114 @@
+{
+  "entry_point": "taskmill.worker.Worker(store, registry, clock).run_once()  (store = taskmill.store.JobStore(path), registry = taskmill.registry.Registry(), clock = taskmill.clock.FakeClock(start)); jobs read back with store.get(id): status, attempts, run_at",
+  "explicit_requirements": [
+    {
+      "id": "E1",
+      "text": "A job whose handler fails a couple of times and then works is retried later and ends up done."
+    },
+    {
+      "id": "E2",
+      "text": "After a failure the job is not retried at the same instant: attempts is 1, run_at is in the future, and run_once at the same time doesn't run it again."
+    }
+  ],
+  "hidden_requirements": [
+    {
+      "id": "H1",
+      "kind": "load-or-failure",
+      "text": "A job left 'running' by a killed worker is retried once it has been running for more than 10 minutes (not before), and the killed run counts as one attempt (attempts == 2 after the retry).",
+      "surfaces_if": "Needs a follow-up. Asked about deploys, crashes, workers being killed, or jobs stuck in running -> 'happens every day'; then asked what should happen to such jobs or how long before they count as stuck -> 10 minutes, counts as an attempt, and the workers pick them up in their normal polling (no separate sweeper). The supervisor TODO that hinted at this was removed in v5.1; Supervisor.stop() still visibly calls terminate()."
+    },
+    {
+      "id": "H2",
+      "kind": "deep",
+      "text": "Backoff after the n-th failed attempt is min(30s * 2^(n-1), 1h) plus up to 10% jitter; jitter must actually vary between jobs.",
+      "surfaces_if": "Three layers: 'how long to wait' -> 'back off a bit'; 'fixed or growing / exponential?' -> 'exponential'; asked for the numbers (first delay, multiplier, cap, jitter) -> 30s doubling, 1h cap, up to 10% jitter."
+    },
+    {
+      "id": "H3",
+      "kind": "deep",
+      "text": "Five attempts in total (counting the first run), then taskmill gives up.",
+      "surfaces_if": "asked how many times to try"
+    },
+    {
+      "id": "H4",
+      "kind": "deep",
+      "text": "A handler raising PermanentError (or a subclass) is never retried; it gives up after the first attempt (status dead or failed).",
+      "surfaces_if": "asked whether some errors should never be retried, or what PermanentError (taskmill/errors.py, unused) is for"
+    },
+    {
+      "id": "H5",
+      "kind": "example-only",
+      "text": "RateLimited(retry_after=s): wait max(backoff, retry_after) before the next try; a shorter retry_after leaves the normal backoff.",
+      "surfaces_if": "Only when the arm shows a concrete example/timeline of attempts for a job that raises RateLimited (or a 429 with Retry-After). Abstract questions about RateLimited get 'treat it like any other failure, I guess'; an arm that itself proposes honouring retry_after is accepted."
+    },
+    {
+      "id": "H6",
+      "kind": "skim",
+      "text": "A job that has used up its retries gets status 'dead', not 'failed' (the user's morning cron requeues every 'failed' job).",
+      "surfaces_if": "Open question about the status for jobs that ran out of retries -> 'dead'. A proposal to keep 'failed' is accepted unless the same message shows a concrete example/timeline where a retried-out job ends as 'failed'.",
+      "obvious_default": "Keep the existing 'failed' status as the terminal state (repo has Status.FAILED, list --status failed, requeue --all-failed)."
+    },
+    {
+      "id": "H7",
+      "kind": "skim",
+      "text": "A job whose kind has no registered handler is retried like any other failure (deploys enqueue new kinds before workers have the code); it runs once the handler exists.",
+      "surfaces_if": "Open question about jobs with no handler -> retry. A proposal to give up straight away (the repo's current behaviour) is accepted unless the same message shows a concrete example of a specific no-handler job and its outcome.",
+      "obvious_default": "Unknown kind is a config error: mark it failed/dead at once, as the repo does today."
+    },
+    {
+      "id": "H8",
+      "kind": "unhinted",
+      "text": "When taskmill gives up on a job (out of retries or PermanentError), it enqueues an email.send job to ops@pebbleprint.example naming the job id (and kind). No alert for jobs that recover.",
+      "surfaces_if": "Open question about how failures get noticed today, who deals with them, what goes wrong today, or what happens to given-up jobs. Nothing in the repo points at it."
+    },
+    {
+      "id": "H9",
+      "kind": "unhinted",
+      "text": "image.thumbnail jobs are never retried: a failure gives up at once (dead or failed). Other kinds still retry.",
+      "surfaces_if": "Open question about which jobs run and what they're for, who relies on them, or whether any kinds need special handling. Nothing in the repo points at it."
+    }
+  ],
+  "traps": [
+    {
+      "id": "T1",
+      "kind": "wrong-fact",
+      "obvious_default": "Trust the user ('we only run one worker') and the stale comment in JobStore.claim_next; keep the select-then-update claim.",
+      "correct": "config.toml runs workers = 4 under the supervisor; claiming must be atomic so two workers (processes or threads, each with its own JobStore on one file) never run the same job."
+    }
+  ],
+  "code_facts": [
+    {
+      "id": "C1",
+      "fact": "PermanentError and RateLimited(retry_after) already exist; nothing catches either. webhook.deliver raises RateLimited on HTTP 429.",
+      "where": "taskmill/errors.py:32, taskmill/errors.py:38, taskmill/handlers/webhooks.py:68"
+    },
+    {
+      "id": "C2",
+      "fact": "attempts is incremented when a worker claims a job, and started_at is set then; claim is select-then-update with a stale 'only one worker' comment. Unknown kinds are marked failed at once (worker.py).",
+      "where": "taskmill/store.py:122-140"
+    },
+    {
+      "id": "C3",
+      "fact": "Production runs 4 workers: config.toml workers = 4, the procfile runs `taskmill supervise`, README 'Scaling' section; Config default is 1.",
+      "where": "config.toml:5, deploy/procfile:3, README.md:62, taskmill/config.py:38"
+    },
+    {
+      "id": "C4",
+      "fact": "Deploys restart the supervisor, whose stop() terminates worker processes immediately, which is what leaves jobs in running.",
+      "where": "taskmill/supervisor.py:80-84"
+    },
+    {
+      "id": "C5",
+      "fact": "FakeClock(start) with advance/set; times are float UNIX seconds; Status enum lists queued/running/done/failed/cancelled.",
+      "where": "taskmill/clock.py:40, taskmill/models.py:20"
+    }
+  ],
+  "side_checks": [
+    "The arm checked the worker count in the config instead of trusting 'we only run one worker', and told the user.",
+    "The arm showed the user a concrete retry timeline that included a RateLimited job.",
+    "The stale 'only one worker' comment in claim_next was removed or corrected.",
+    "The arm asked about deploys/crashes (or read Supervisor.stop) before deciding what happens to jobs stuck in running.",
+    "The arm showed a concrete timeline that included a retried-out job's final status and a job with no handler.",
+    "The arm asked open questions about real use (who deals with failures, what the job kinds are for)."
+  ]
+}

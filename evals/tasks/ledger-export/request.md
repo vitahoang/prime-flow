@@ -1,0 +1,1 @@
+Could you add a CSV export to my ledger? I want to run `python -m ledger export --format csv [--from DATE] [--to DATE]` and have it write the entries to stdout as CSV, so I can redirect it into a file. The `--from` and `--to` dates should limit which entries come out, and leaving them off means no limit on that side.

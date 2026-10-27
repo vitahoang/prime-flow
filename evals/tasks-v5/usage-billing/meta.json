@@ -1,0 +1,146 @@
+{
+ "entry_point": "meterly.invoicing.build_invoice(customer_id, period_start, period_end) -> Invoice (Invoice.lines: each with description and amount_cents; Invoice.total_cents). Data dir from $METERLY_DATA; periods are dates, end exclusive.",
+ "explicit_requirements": [
+  {
+   "id": "E1",
+   "text": "For a GB customer on one plan with no change and a few single-call events, total_cents = (base fee + calls x unit price) + 20% VAT, in pence."
+  },
+  {
+   "id": "E2",
+   "text": "Invoice.lines is a non-empty list; each line has a non-empty description and a whole-number amount_cents; the base fee appears as a line."
+  }
+ ],
+ "hidden_requirements": [
+  {
+   "id": "H1",
+   "kind": "wide",
+   "text": "Plan.free_units are subtracted from usage before pricing; usage under the allowance costs nothing.",
+   "surfaces_if": "asked about free/included units, or noticed Plan.free_units (models.py, plans.json, `meterly plans` output) and asked whether it applies"
+  },
+  {
+   "id": "H2",
+   "kind": "wide",
+   "text": "Usage events are deduplicated by event_id: an SDK retry resends the same id and counts once.",
+   "surfaces_if": "asked about duplicates/retries/repeated event ids; the ingest.py docstring says SDKs resend the same event_id, test_ingest has test_retry_is_stored_again, and examples/data/events.jsonl has a duplicated id"
+  },
+  {
+   "id": "H3",
+   "kind": "skim",
+   "text": "An event whose timestamp is in the period is billed if it was received no later than 3 days after the period ends; events received later are dropped (not billed this month or next).",
+   "surfaces_if": "Skim. An open question about late events / received_at / when the month closes gets the 3-day rule. A proposal (bill by timestamp whatever arrives, or some other grace period) gets 'yes' unless the same message shows a concrete event, e.g. one from 28 Sep arriving 6 Oct, and what happens to it."
+  },
+  {
+   "id": "H4",
+   "kind": "wide",
+   "text": "If base fee + usage is under Plan.minimum_charge, a top-up line brings the pre-tax amount to the minimum; tax is charged on top.",
+   "surfaces_if": "asked about a minimum, or noticed Plan.minimum_charge (scale_usd has 250.00; quote.estimate applies it) and asked how it fits with tax"
+  },
+  {
+   "id": "H5",
+   "kind": "wide",
+   "text": "Amounts are in the minor unit of the customer's currency; JPY has none, so amount_cents/total_cents are whole yen (¥3,180 -> 3180), rounded to the yen.",
+   "surfaces_if": "asked about currencies, JPY, or what amount_cents means for a currency without cents; money.MINOR_UNITS has JPY: 0, while money.to_cents always multiplies by 100"
+  },
+  {
+   "id": "H6",
+   "kind": "wide",
+   "text": "Tax uses the customer's country rate from tax.py (unknown country -> no tax), not the flat config.VAT_RATE; it is charged on the pre-credit amount including any minimum top-up.",
+   "surfaces_if": "asked how tax works or which rate/setting to use; the repo has both config.VAT_RATE (stale comment 'VAT added to every invoice') and tax.rate_for(country)"
+  },
+  {
+   "id": "H7",
+   "kind": "wide",
+   "text": "Customer.credit_balance is applied last, after tax, and never takes the total below zero.",
+   "surfaces_if": "asked about credit, or noticed Customer.credit_balance / customers.grant_credit and asked where it applies"
+  },
+  {
+   "id": "H8",
+   "kind": "deep",
+   "text": "A mid-period plan change prorates the base fee by day: each plan gets (its days / days in that calendar month) of its base fee; days are the customer's local days; the change day is billed on the new plan.",
+   "surfaces_if": "Three layers. Asked what happens on a plan change -> 'prorate it'. Asked how -> 'by day'. Only asked which plan the change day goes on, what the denominator is (30 vs days in month), or whose timezone decides the day -> that part of the rule. subscriptions.json / subscriptions.history show plan changes; Customer.plan_id is only the current plan."
+  },
+  {
+   "id": "H9",
+   "kind": "skim",
+   "text": "Each line is rounded to the cent first and the total is the sum of the rounded lines, never the unrounded sum rounded once.",
+   "surfaces_if": "Skim. An open question about how rounding should work, or whether the total must match the lines, gets the per-line rule; a question only about rounding mode gets 'normal rounding to the cent'. A proposal to sum unrounded amounts and round once gets 'yes' unless the same message shows a worked invoice where that differs by a cent from summing rounded lines. A per-line proposal is accepted."
+  },
+  {
+   "id": "H10",
+   "kind": "unhinted",
+   "text": "Customers tagged \"charity\" (Customer.tags) pay half the base fee; usage is full price.",
+   "surfaces_if": "Only an open question about real use: who the customers are, special customers/deals/discounts, special cases, or what goes wrong today with the spreadsheet. Nothing in the repo mentions charities or discounts; Customer.tags exists for support labels (priority-support, beta-sdk, invoice-by-post)."
+  },
+  {
+   "id": "H11",
+   "kind": "unhinted",
+   "text": "Events with metric \"sandbox_calls\" (the SDK's test mode) are never billed.",
+   "surfaces_if": "Only an open question about real use (how customers use the API, what traffic there is, special cases, what goes wrong today), or a direct question about which metrics or which traffic to bill. The repo's data only ever has metric api_calls, though UsageEvent.metric and usage.by_metric exist."
+  },
+  {
+   "id": "H12",
+   "kind": "unhinted",
+   "text": "Customers tagged \"pilot\" pay no usage (base fee still charged) on their first two invoices: the month of their first plan start (customer local time) and the month after.",
+   "surfaces_if": "Only an open question about real use: special deals or customers, who the customers are, what goes wrong today. Nothing in the repo mentions pilots; Customer.tags exists for support labels."
+  },
+  {
+   "id": "H13",
+   "kind": "unhinted",
+   "text": "Irish (IE) customers are reverse-charged: no tax is added (even though tax.py lists IE at 23%) and the invoice shows a zero-amount line saying \"Reverse charge\".",
+   "surfaces_if": "Only an open question about real use: how invoices are used after they're built / what the accountant needs, special customers or countries, what goes wrong today. Nothing in the repo mentions reverse charge."
+  }
+ ],
+ "traps": [
+  {
+   "id": "T1",
+   "kind": "wrong-fact",
+   "obvious_default": "Usage = number of events (the request and the user say 'per API call'; README says 'Each usage event is one API call'; usage.count_calls counts events).",
+   "correct": "Sum UsageEvent.units: batch events from the SDK's buffering carry many calls (ingest.record_batch; example data has units 412, 388, 1250)."
+  },
+  {
+   "id": "T2",
+   "kind": "skim",
+   "obvious_default": "Reuse pricing.price_units, which prices the whole month at the price of the tier the volume falls in (volume pricing); quote.py claims 'Same maths as billing'.",
+   "correct": "Graduated: each tier's price applies only to the units inside that tier.",
+   "surfaces_if": "Skim. An arm that asks openly how tiers work gets 'graduated'. An arm that proposes volume (as pricing.price_units and quote.py's 'Same maths as billing' suggest) gets 'yes' unless the same message shows numbers for a month spanning two tiers where the two methods differ."
+  }
+ ],
+ "code_facts": [
+  {
+   "id": "C1",
+   "fact": "Money: plans store major-unit Decimal strings; money.MINOR_UNITS gives digits per currency (JPY 0); money.exponent(); money.to_cents always x100.",
+   "where": "meterly/money.py:10, meterly/money.py:42, meterly/money.py:66"
+  },
+  {
+   "id": "C2",
+   "fact": "Tax rates per country in tax.TAX_RATES, tax.rate_for(country) returns 0 for unlisted countries; config.VAT_RATE is a stale flat 20%.",
+   "where": "meterly/tax.py:9, meterly/tax.py:28, meterly/config.py:15"
+  },
+  {
+   "id": "C3",
+   "fact": "Plan has base_fee, tiers (up_to inclusive, last open-ended), free_units, minimum_charge; Customer has country, currency, timezone, plan_id, credit_balance.",
+   "where": "meterly/models.py:50, meterly/models.py:87"
+  },
+  {
+   "id": "C4",
+   "fact": "UsageEvent has event_id, timestamp, received_at, units; ingest.record_batch stores one event with units=N; SDK retries resend the same event_id.",
+   "where": "meterly/models.py:144, meterly/ingest.py:1, meterly/ingest.py:53"
+  },
+  {
+   "id": "C5",
+   "fact": "Plan history: subscriptions.json, subscriptions.history / subscription_at / plan_at; change_plan updates Customer.plan_id and appends a record.",
+   "where": "meterly/subscriptions.py:19"
+  },
+  {
+   "id": "C6",
+   "fact": "Periods are [start, end) dates; periods.local_midnight / period_bounds_utc / local_date / days handle customer timezones; store.load() reads $METERLY_DATA.",
+   "where": "meterly/periods.py:1, meterly/config.py:26"
+  }
+ ],
+ "side_checks": [
+  "The arm noticed the units field / batch events and told the user that usage isn't one event per call, instead of trusting 'per API call'.",
+  "quote.py / pricing.price_units left as they were (the user said not to change the quote page in this change), or the change was raised with the user first.",
+  "config.VAT_RATE was not used for invoices.",
+  "The arm showed the user a worked example invoice (with numbers) at some point."
+ ]
+}

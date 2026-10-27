@@ -1,0 +1,10 @@
+{"event_id": "evt_a1f0c2d3e4b50001", "customer_id": "cus_harbour", "timestamp": "2026-09-01T08:00:03Z", "received_at": "2026-09-01T08:00:03Z", "units": 1, "metric": "api_calls", "source": "sdk"}
+{"event_id": "evt_a1f0c2d3e4b50002", "customer_id": "cus_harbour", "timestamp": "2026-09-01T08:00:09Z", "received_at": "2026-09-01T08:00:10Z", "units": 1, "metric": "api_calls", "source": "sdk"}
+{"event_id": "evt_b7c19e2a0f3d0001", "customer_id": "cus_pinecrest", "timestamp": "2026-09-01T15:00:00Z", "received_at": "2026-09-01T15:01:00Z", "units": 412, "metric": "api_calls", "source": "batch"}
+{"event_id": "evt_b7c19e2a0f3d0002", "customer_id": "cus_pinecrest", "timestamp": "2026-09-01T15:01:00Z", "received_at": "2026-09-01T15:02:00Z", "units": 388, "metric": "api_calls", "source": "batch"}
+{"event_id": "evt_a1f0c2d3e4b50003", "customer_id": "cus_harbour", "timestamp": "2026-09-02T11:30:41Z", "received_at": "2026-09-02T11:30:41Z", "units": 1, "metric": "api_calls", "source": "sdk"}
+{"event_id": "evt_a1f0c2d3e4b50003", "customer_id": "cus_harbour", "timestamp": "2026-09-02T11:30:41Z", "received_at": "2026-09-02T11:30:47Z", "units": 1, "metric": "api_calls", "source": "sdk"}
+{"event_id": "evt_c3d4e5f6a7b80001", "customer_id": "cus_sakura", "timestamp": "2026-09-02T01:15:00Z", "received_at": "2026-09-02T01:16:00Z", "units": 1250, "metric": "api_calls", "source": "batch"}
+{"event_id": "evt_d9e8f7a6b5c40001", "customer_id": "cus_lindgren", "timestamp": "2026-09-03T07:45:12Z", "received_at": "2026-09-03T07:45:12Z", "units": 1, "metric": "api_calls", "source": "sdk"}
+{"event_id": "evt_b7c19e2a0f3d0003", "customer_id": "cus_pinecrest", "timestamp": "2026-09-30T23:58:00Z", "received_at": "2026-10-02T06:10:00Z", "units": 97, "metric": "api_calls", "source": "batch"}
+{"event_id": "evt_a1f0c2d3e4b50004", "customer_id": "cus_harbour", "timestamp": "2026-09-29T16:02:00Z", "received_at": "2026-10-07T09:00:00Z", "units": 1, "metric": "api_calls", "source": "sdk"}

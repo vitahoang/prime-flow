@@ -1,0 +1,3 @@
+# One supervisor per box; it starts `workers` processes from config.toml.
+web: gunicorn shop.wsgi
+taskmill: python -m taskmill --config config.toml supervise

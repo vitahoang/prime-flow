@@ -1,0 +1,20 @@
+{
+  "customers": [
+    {"id": "C001", "name": "Lim & Tan Pte Ltd", "email": "ap@limtan.example", "timezone": "Asia/Singapore", "currency": "SGD",
+     "address": ["8 Robinson Road #12-01", "Singapore 048544"], "contact": "Grace Lim"},
+    {"id": "C002", "name": "Harbourside Dental", "email": "accounts@harbourside.example", "timezone": "Australia/Sydney", "currency": "AUD",
+     "address": ["3/41 Bay Street", "Double Bay NSW 2028", "Australia"], "contact": "Dr Paul Nguyen"},
+    {"id": "C003", "name": "Brightline Media", "email": "billing@brightline.example", "timezone": "America/Los_Angeles", "currency": "USD",
+     "address": ["1201 Abbot Kinney Blvd", "Venice, CA 90291", "USA"]},
+    {"id": "C004", "name": "Kai Surf Co", "email": "kai@kaisurf.example", "timezone": "Pacific/Honolulu", "currency": "USD",
+     "address": ["66-250 Kamehameha Hwy", "Haleiwa, HI 96712", "USA"]},
+    {"id": "C005", "name": "Northgate Books", "email": "orders@northgate.example", "timezone": "Europe/London", "currency": "GBP",
+     "address": ["22 Northgate", "York YO1 6JH"]},
+    {"id": "C006", "name": "Mehta Analytics", "email": "finance@mehta.example", "timezone": "Asia/Kolkata", "currency": "INR",
+     "address": ["Level 4, Raheja Towers", "Bengaluru 560001", "India"]},
+    {"id": "C007", "name": "Torrens Wine Co", "email": "office@torrens.example", "timezone": "Australia/Adelaide", "currency": "AUD",
+     "address": ["9 Flinders Street", "Adelaide SA 5000", "Australia"]},
+    {"id": "C008", "name": "Fjord & Pine", "email": "hei@fjordpine.example", "timezone": "Europe/Oslo", "currency": "NOK",
+     "address": ["Torggata 5", "0181 Oslo", "Norway"]}
+  ]
+}

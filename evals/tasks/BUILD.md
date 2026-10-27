@@ -1,0 +1,12 @@
+# How a task is built
+
+Each task lives in `tasks/<name>/`:
+
+- `repo/` — the starting project: a git repo (commit with `git -c user.name=dev -c user.email=dev@x commit`, 3–6 commits of plausible history), Python 3 + pytest, 300–800 lines across several modules, existing passing tests, `pytest.ini` (`[pytest]\ntestpaths = tests\npythonpath = .`), README. It must NOT contain the requested feature.
+- `request.md` — the user's opening message: natural, 2–5 sentences, deliberately underspecified, and it names the entry point exactly (command or function signature). It states only the obvious requirements.
+- `brief.md` — the simulated user's private brief, written in first person ("I run a small bookkeeping business…"): who they are, why they want this, and every hidden requirement, trap answer and preference, each phrased as how they'd answer if asked. Mark each item with its id (H1…, T1…). Also list things they don't care about ("your call"). Never mention tests.
+- `meta.json` — `{"entry_point": "...", "hidden_requirements": [{"id":"H1","text":"...","surfaces_if":"what question or check would reveal it"}], "traps": [{"id":"T1","obvious_default":"...","correct":"..."}], "code_facts": [{"id":"C1","fact":"...","where":"file:line"}], "explicit_requirements": [{"id":"E1","text":"..."}]}`. 3–5 hidden requirements, 1–2 traps, at least 1 code fact (something a flow might ask the user that the repo already answers, e.g. which timezone setting already exists, which date format the rest of the CLI uses).
+- `hidden/test_hidden.py` — acceptance tests that use ONLY the entry point named in the request (run it as a subprocess or import exactly that function). Name every test `test_<ID>_<what>` with the requirement id it checks (E1, H2, T1…). At least 2 tests per hidden requirement/trap, at least 1 per explicit requirement. Tests must accept any reasonable implementation of choices the brief leaves as "your call".
+- `ref/` — a correct implementation (changed/added files at repo-relative paths) that honours every explicit and hidden requirement.
+- `naive/` — what a competent engineer builds from request.md alone, taking the obvious defaults and never asking anything. It must pass every E test and fail the tests of every H and T item (that's what proves the task discriminates).
+- `verify.py` — copies repo to a temp dir, overlays ref → all hidden tests pass and existing tests pass; overlays naive → all E tests pass and every H/T id has at least one failing test; repo alone → hidden tests fail. Prints a table.

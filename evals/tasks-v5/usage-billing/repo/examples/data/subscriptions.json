@@ -1,0 +1,7 @@
+[
+  {"customer_id": "cus_harbour", "plan_id": "starter_gbp", "started_at": "2025-11-03T09:12:00Z"},
+  {"customer_id": "cus_harbour", "plan_id": "pro_gbp", "started_at": "2026-08-18T14:05:00Z"},
+  {"customer_id": "cus_pinecrest", "plan_id": "scale_usd", "started_at": "2026-01-15T17:40:00Z"},
+  {"customer_id": "cus_sakura", "plan_id": "pro_jpy", "started_at": "2026-03-01T00:00:00Z"},
+  {"customer_id": "cus_lindgren", "plan_id": "starter_eur", "started_at": "2026-06-20T08:00:00Z"}
+]

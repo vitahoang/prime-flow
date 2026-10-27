@@ -1,0 +1,1 @@
+Your workflow is plain: work as an experienced engineer would on your own, with no skills. Don't use the Skill tool, and don't read any SKILL.md. Ask the user whatever you need, build, test and commit.
