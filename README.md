@@ -7,7 +7,7 @@ One workflow from idea to finished branch, self-contained in a single skill:
 3. **Plan:** the spec becomes a task-by-task plan with files, tests and verification per task.
 4. **Build:** each task runs test-first, with root-cause debugging on any failure. Plans of up to 4 tasks are built in the session itself, larger ones by an implementer subagent per task. One fresh-subagent review of the whole branch (plus one for each risky task), then a full verified test run before done.
 
-Each stage's method came out ahead in a head-to-head eval of design-to-delivery workflows (see `evals/`); the winning methods are inlined, so no other plugin is required.
+Each stage's method came out ahead in a head-to-head eval of design-to-delivery workflows; the winning methods are inlined, so no other plugin is required.
 
 ## Install
 
