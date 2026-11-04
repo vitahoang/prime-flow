@@ -1,6 +1,6 @@
 {
   "name": "prime-flow",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "One self-contained workflow from idea to merged code: grill the design in repo-grounded rounds, write a spec the user approves, plan from it, then build task by task with TDD, root-cause debugging and code review",
   "skills": [
     "./skills/start"

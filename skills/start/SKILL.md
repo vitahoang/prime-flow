@@ -73,17 +73,27 @@ Once the spec is approved, turn it into a plan at `docs/plans/YYYY-MM-DD-<topic>
 - Break the work into tasks of a few hours at most, ordered so every task lands on a green test suite.
 - Per task: the exact files to create or change, the observable behaviour it adds, the test(s) that prove it, and how to verify (the command to run and what its output should show).
 - State what the plan deliberately leaves out.
+- Mark a task **risky** if it touches auth or permissions, data migrations or deletions, money, concurrency, or time-zone and DST logic.
 
 Use no other planning route for this — no separate planner or architect agent; the spec plus this plan is the design authority. Show the plan to the user before building.
 
 ## Stage 4: Build
 
-Execute the plan task by task. For each task, prefer dispatching a fresh implementer subagent with the task's section of the plan; run tasks yourself if subagents aren't available or the user asks for in-session work. Keep these disciplines on throughout, and pass them to every implementer:
+Execute the plan task by task, one commit per task. Who builds depends on the plan:
+
+| Plan | Who builds each task |
+|------|----------------------|
+| Up to 4 tasks | You, in this session. |
+| 5 or more tasks | A fresh implementer subagent per task, given that task's section of the plan. Run tasks that touch no common files in parallel. |
+
+The main session's turns are what cost the most. In the eval, its 60–80 turns at full context were most of a run's bill, while the helpers themselves were cheap. Every dispatch, and every check after it, adds turns. So when you build a task yourself, do it in about three calls: write the failing test and run it; write the code and run the full suite; commit. When an implementer builds it, take its report and its test run as the evidence.
+
+Keep these disciplines on throughout, and pass them to every implementer:
 
 - **TDD:** every task is test-first. Write the test, run it, show it failing for the right reason, then write the minimum code that passes, then refactor on green. No production code without a failing test demanding it. Implementers must show each failing test run before the code that passes it.
 - **Debugging:** any unexpected failure, flaky test or bug gets diagnosed before any fix is attempted: reproduce it, read the actual error, trace it to a root cause you can state in one sentence, and only then change code. If a fix fails twice, stop and re-examine the diagnosis instead of trying a third variation. That covers failures in your own work, in an implementer's report, and a reviewer's finding you can't explain.
-- **Review:** after each task (or small group of tasks), have a fresh subagent review the diff against the plan: correctness first, then whether the tests actually pin the behaviour, then simplicity. Act on findings by verifying them against the code — push back with evidence on a finding that's wrong, fix what's real, and re-run the tests after.
-- **Models:** implementer subagents for well-specified tasks run on sonnet. Keep opus for reviewers, for a fix that has already failed twice, and for tasks the plan marks as hard. In the eval, opus made up four-fifths of this workflow's cost, which put it at the top of the four arms.
+- **Review:** after the last task, have one fresh subagent review the whole branch against the spec and plan: correctness first, then whether the tests actually pin the behaviour, then simplicity. For a task the plan marks risky, also have it reviewed as soon as it's built. Act on findings by verifying them against the code: push back with evidence on a finding that's wrong, fix what's real, and re-run the tests. Send a fix back for review only when it changes more than the code the finding pointed at.
+- **Models:** implementer subagents run on sonnet. Keep opus for reviewers, for a fix that has already failed twice, and for tasks the plan marks as hard.
 
 **Before claiming done:** run the full test suite and any linters the repo has, and show the output. No success claims without the passing run in front of you. Then ask the user how to land the branch (PR, merge, or leave it) rather than assuming.
 
